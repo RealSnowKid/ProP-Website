@@ -37,6 +37,51 @@ $(document).ready(function(){
   });
 })
 
+$('#tickets-reg').on('keyup', '#email', function() {
+    var email = $('#email').val();
+    // var regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/g;
+    // if (email.match(regex)) {
+    // $('#message').html('Email OK').css('color', 'green');
+    // }
+    // else if (!email){
+    // $('#message').html('');
+    // }
+    // else {
+    // $('#message').html('Bad Email').css('color', 'red');
+    // }
+    console.log(email); 
+});
+
+$('#password').on('keyup', function() {
+    var pass = $('#password').val();
+    var regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/g;
+    if (pass.match(regex)) {
+    $('#message2').html('Password OK').css('color', 'green');
+    }
+    else if (!pass){
+    $('#message2').html('');
+    }
+    else {
+    $('#message2').html('Password Too Weak').css('color', 'red');
+    }   
+});
+
+$('#password, #repeatpw').on('keyup focus', function () {
+    if ($('#password').val() == $('#repeatpw').val()) {
+      if (!$('#password').val()){
+          $('#message3').html('');
+      }
+      else {
+          $('#message3').html('Passwords Matching').css('color', 'green');    
+      }
+    } 
+    else {
+      $('#message3').html('Passwords Not Matching').css('color', 'red');
+    }
+
+});
+
+
 function openDay (evt, day) {
   var i, tabcontent, tablinks;
   tabcontent = document.getElementsByClassName("tabcontent");

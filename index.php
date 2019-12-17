@@ -1,5 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<?php
+
+
+
+?>
+<html>
 
 <head>
 
@@ -14,9 +19,10 @@
   <link href="style.css" rel="stylesheet" type="text/css">
   <link href="./flags_css/flag-icon.css" rel="stylesheet">
 
-  <script type = "text/javascript" src = "functions.js" ></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+  <script type = "text/javascript" src = "functions.js" ></script>
+
   
 </head>
 
@@ -30,7 +36,7 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>                        
       </button>
-      <a class="navbar-brand" href="#start">Event</a>
+      <a class="navbar-brand" href="#start">Festival</a>
     </div>
 
 
@@ -261,12 +267,12 @@
           <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal">
             <span class="glyphicon glyphicon-remove"></span> Cancel
           </button>
-          <p>Need <a href="#">help?</a></p>
         </div>
       </div>
     </div>
   </div>
 
+<!-- Registration Modal -->
 <div class="modal fade" id="tickets-reg" role="dialog">
     <div class="modal-dialog">
     
@@ -276,27 +282,27 @@
           <h4><span class="glyphicon glyphicon-lock"></span> Tickets</h4>
         </div>
         <div class="modal-body">
-          <form role="form">
+          <form role="form" action="register.php" method="POST">
             <div class="form-group2">
               	<h3>Please fill in this form to create an account.</h3>
             </div>
             <div class="form-group2">
               	<label for="email">Email</label>
-              	<br>
-			  	<input type="text" placeholder="Enter Email" name="email" required>
+			  	<input type="text" placeholder="Enter Email" name="email" id="email" required>
+			  	<label id="message"></label>
 			</div>
 			<div class="form-group2">
-			  	<label for="psw">Password</label>
-			  	<br>
-			    <input type="password" placeholder="Enter Password" name="psw" required>
+			  	<label for="password">Password</label>
+			    <input type="password" placeholder="Enter Password" name="password" id="password" required>
+			    <span id="message2"></span>
 			</div>
 			<div class="form-group2">
-			    <label for="psw-repeat">Repeat Password</label>
-			    <br>
-			    <input type="password" placeholder="Repeat Password" name="psw-repeat" required>
+			    <label for="repeatpw">Repeat Password</label>
+			    <input type="password" placeholder="Repeat Password" name="repeatpw" id="repeatpw" required>
+			    <span id="message3"></span>
 			</div>
 			    <hr>
-              <button class="btn btn-block" type="submit">Register 
+              <button class="btn btn-block" type="submit">Register & Purchase
                 <span class="glyphicon glyphicon-ok"></span>
               </button>
           </form>
@@ -311,6 +317,7 @@
     </div>
   </div>
 
+<!-- Login Modal -->
   <div class="modal fade" id="tickets-login" role="dialog">
     <div class="modal-dialog">
     
@@ -320,22 +327,22 @@
           <h4><span class="glyphicon glyphicon-lock"></span> Tickets</h4>
         </div>
         <div class="modal-body">
-          <form role="form">
-            <div class="form-group2">
+          <form role="form" action="login.php" method="POST">
+            <div class="form-group2" action="login.php" method="POST">
               	<h3>Please fill in this form to log into your account.</h3>
             </div>
             <div class="form-group2">
-              	<label for="email">Email</label>
+              	<label for="email2">Email</label>
               	<br>
-			  	<input type="text" placeholder="Enter Email" name="email" required>
+			  	<input type="text" placeholder="Enter Email" name="email2" required>
 			</div>
 			<div class="form-group2">
-			  	<label for="psw">Password</label>
+			  	<label for="password2">Password</label>
 			  	<br>
-			    <input type="password" placeholder="Enter Password" name="psw" required>
+			    <input type="password" placeholder="Enter Password" name="password2" required>
 			</div>
 		    <hr>
-          	<button class="btn btn-block" type="submit">Log In 
+          	<button class="btn btn-block" type="submit">Log In & Purchase
            		<span class="glyphicon glyphicon-ok"></span>
          	</button>
           </form>
@@ -369,7 +376,7 @@
           <input class="form-control" id="name" name="name" placeholder="Name" type="text" required>
         </div>
         <div class="col-sm-6 form-group">
-          <input class="form-control" id="email" name="email" placeholder="Email" type="email" required>
+          <input class="form-control" id="email3" name="email" placeholder="Email" type="email" required>
         </div>
       </div>
       <textarea class="form-control" id="comments" name="comments" placeholder="Comment" rows="5"></textarea>
