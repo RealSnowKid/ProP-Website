@@ -408,3 +408,8 @@ iframe {
   text-align: center;
   font-size: 20px;
 }
+
+.rounded.float-left {
+  position: absolute;
+  left: 10px;
+}

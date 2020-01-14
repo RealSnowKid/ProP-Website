@@ -170,7 +170,7 @@ if ($_SESSION['modal'] == '#tickets3') {
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>                        
       </button>
-      <a class="navbar-brand" href="#start">Festival</a>
+      <a href="index.php#start"><img class="rounded float-left" src="dj_set_2.png" height="50" width="50"></a><a class="navbar-brand" href="index.php#start">LIT MUSIC FESTIVAL</a>
     </div>
 
 

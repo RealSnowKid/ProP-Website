@@ -8,8 +8,6 @@ if (!isset($_SESSION['id'])) {
 	exit();
 }
 
-$_SESSION['tickets'] = 1;
-
 
 ?>
 <html>
@@ -43,7 +41,7 @@ $_SESSION['tickets'] = 1;
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>                        
       </button>
-      <a class="navbar-brand" href="index.php#start">Festival</a>
+      <a href="index.php#start"><img class="rounded float-left" src="dj_set_2.png" height="50" width="50"></a><a class="navbar-brand" href="index.php#start">LIT MUSIC FESTIVAL</a>
     </div>
 
 
@@ -70,7 +68,7 @@ $_SESSION['tickets'] = 1;
 	<h1>Welcome <?php if (isset($_SESSION['email'])) {
 		echo $_SESSION['email'];
 		// echo "<br>";
-		// echo $_SESSION['reservation'];
+		// echo $_SESSION['test'];
 		// echo "<br>";
 		// echo $_SESSION['id'];
 		// echo "<br>";
@@ -163,6 +161,7 @@ $_SESSION['tickets'] = 1;
 		<?php if(isset($_SESSION['reservation'])): ?>
 
 			<h1 style="color:black">You Have Reserved Room Number: <?php echo $_SESSION['reservation']; ?>.</h1>
+			<a class="btn btn-block3" href="profile.php?cancelres=<?php echo $_SESSION['reservation'] ?>">Cancel Reservation</a>
 
 		<?php else: ?>
 

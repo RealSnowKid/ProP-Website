@@ -198,10 +198,42 @@ if (isset($_POST['login-btn'])){
 		$user = $result->fetch_assoc();
 
 		if (password_verify($password, $user['Account_Pass_hash'])) {
-			$_SESSION['id'] = $user['Account_ID'];
+
+			$id = $user['Account_ID'];
+
+			$_SESSION['id'] = $id;
 			$_SESSION['email'] = $user['Account_Email'];
 			$_SESSION['modal'] = '#tickets3';
-			header("Location: /index.php#schedule");
+
+			$sql2 = "SELECT visitorID FROM tickets WHERE visitorID = ?";
+			$stmt2 = $conn->prepare($sql2);
+			$stmt2->bind_param('i', $id);
+			$stmt2->execute();
+			$rws = $stmt2->num_rows();
+
+			if ($rws > 0) {
+				$_SESSION['tickets'] = 1;
+			}
+			else {
+				unset($_SESSION['tickets']);
+			}
+
+			$sql3 = "SELECT Account_ID, Accommodation_ID FROM accommodation WHERE Account_ID = ?";
+			$stmt3 = $conn->prepare($sql3);
+			$stmt3->bind_param('i', $id);
+			$stmt3->execute();
+			$rws2 = $stmt3->num_rows();
+			$result2 = $stmt3->get_result();
+			$accom = $result2->fetch_assoc();
+
+			if ($rws2 > 0) {
+				$_SESSION['reservation'] = $accom['Accommodation_ID'];
+			}
+			else {
+				unset($_SESSION['reservation']);
+			}
+
+			header("Location: index.php#schedule");
 			exit();
 		}
 		else{
@@ -235,8 +267,38 @@ if (isset($_POST['login-btn2'])){
 		$user = $result->fetch_assoc();
 
 		if (password_verify($password, $user['Account_Pass_hash'])) {
-			$_SESSION['id'] = $user['Account_ID'];
+			$id = $user['Account_ID'];
+
+			$_SESSION['id'] = $id;
 			$_SESSION['email'] = $user['Account_Email'];
+
+			$sql2 = "SELECT visitorID FROM tickets WHERE visitorID = ? LIMIT 1";
+			$stmt2 = $conn->prepare($sql2);
+			$stmt2->bind_param('i', $id);
+			$stmt2->execute();
+			$rws = $stmt2->num_rows();
+			$stmt2->close();
+
+			if ($rws > 0) {
+				$_SESSION['tickets'] = 1;
+			}
+			else {
+				unset($_SESSION['tickets']);
+			}
+
+
+			$query = "SELECT Accommodation_ID, Account_ID FROM accommodation WHERE Account_ID = '".$id."' LIMIT 1";
+
+			if ($result2 = $conn->query($query)) {
+
+			    while ($obj = $result2->fetch_object()) {
+			        $accomID = $obj->Accommodation_ID;
+			    }
+			    $_SESSION['reservation'] = $accomID;
+
+			    $result2->close();
+			}
+
 			header("Location: profile.php");
 			exit();
 		}
@@ -253,12 +315,13 @@ if (isset($_GET['logout'])) {
 	unset($_SESSION['id']);
 	unset($_SESSION['email']);
 	unset($_SESSION['modal']);
+	unset($_SESSION['tickets']);
+	unset($_SESSION['reservation']);
 	header("Location: /index.php");
 	exit();
 }
 
 // TICKET GENERATION
-$ticketPrice = 25;
 if (isset($_POST['ticketamount'])) {
 	switch ($_POST['ticketamount']) {
         case '1':
@@ -272,24 +335,39 @@ if (isset($_POST['ticketamount'])) {
 
 			if ($stmt->execute()) {
 
-				// $sql2 = "UPDATE visitor SET Visitor_Balance=? * (-1) WHERE visitorID=?";
-				// $stmt2 = $conn->prepare($sql2);
-				// $stmt2->bind_param('ii', $tickePrice, $id);
+				$sql2 = "UPDATE visitor SET Visitor_Balance = 23 * (-1) WHERE visitorID = ?";
+				
+				$stmt2 = $conn->prepare($sql2);
+				$stmt2->bind_param('i', $id);
 
-				// if ($stmt2->execute()) {
+				if (!$stmt2->execute()) {
+
+					$sql3 = "DELETE FROM tickets WHERE visitorID = ?";
+					$stmt3 = $conn->prepare($sql3);
+					$stmt3->bind_param('i', $id);
+
+					if (!$stmt3->execute()) {
+						$ticket_errors['error'] = "Big OOF.";
+						echo "<script type='text/javascript'> 
+						localStorage.setItem('openModal', '#tickets3'); 
+						</script>";
+					}
+					else{
+						$ticket_errors['error'] = "There was an error processing your tickets.";
+						echo "<script type='text/javascript'> 
+						localStorage.setItem('openModal', '#tickets3'); 
+						</script>";
+					}
+
+				}
+				else{
 					$_SESSION['tickets'] = 1;
 					echo "<script type='text/javascript'>
 				    window.alert('Tickets Reserved!');
     			   	window.location.replace(\"profile.php\");
 				    </script>";
 					exit();
-				// }
-				// else{
-				// 	$ticket_errors['error'] = "There was an error processing your tickets. 2";
-				// 	echo "<script type='text/javascript'> 
-				// 	localStorage.setItem('openModal', '#tickets3'); 
-				// 	</script>";
-				// }
+				}
 			}
 			else{
 				$ticket_errors['error'] = "There was an error processing your tickets.";
@@ -310,12 +388,40 @@ if (isset($_POST['ticketamount'])) {
 			$stmt->bind_param('is', $id, $hex);
 
 			if ($stmt->execute()) {
-				$_SESSION['tickets'] = 1;
-				echo "<script type='text/javascript'>
-			    window.alert('Tickets Reserved!');
-				window.location.replace(\"profile.php\");
-			    </script>";
-				exit();
+
+				$sql2 = "UPDATE visitor SET Visitor_Balance = 23 * (-2) WHERE visitorID = ?";
+				
+				$stmt2 = $conn->prepare($sql2);
+				$stmt2->bind_param('i', $id);
+
+				if (!$stmt2->execute()) {
+
+					$sql3 = "DELETE FROM tickets WHERE visitorID = ?";
+					$stmt3 = $conn->prepare($sql3);
+					$stmt3->bind_param('i', $id);
+
+					if (!$stmt3->execute()) {
+						$ticket_errors['error'] = "Big OOF.";
+						echo "<script type='text/javascript'> 
+						localStorage.setItem('openModal', '#tickets3'); 
+						</script>";
+					}
+					else{
+						$ticket_errors['error'] = "There was an error processing your tickets.";
+						echo "<script type='text/javascript'> 
+						localStorage.setItem('openModal', '#tickets3'); 
+						</script>";
+					}
+
+				}
+				else{
+					$_SESSION['tickets'] = 1;
+					echo "<script type='text/javascript'>
+				    window.alert('Tickets Reserved!');
+    			   	window.location.replace(\"profile.php\");
+				    </script>";
+					exit();
+				}
 			}
 			else{
 				$ticket_errors['error'] = "There was an error processing your tickets.";
@@ -336,12 +442,39 @@ if (isset($_POST['ticketamount'])) {
 			$stmt->bind_param('is', $id, $hex);
 
 			if ($stmt->execute()) {
-				$_SESSION['tickets'] = 1;
-				echo "<script type='text/javascript'>
-			    window.alert('Tickets Reserved!');
-			    window.location.replace(\"profile.php\");
-			    </script>";
-				exit();
+				$sql2 = "UPDATE visitor SET Visitor_Balance = 23 * (-3) WHERE visitorID = ?";
+				
+				$stmt2 = $conn->prepare($sql2);
+				$stmt2->bind_param('i', $id);
+
+				if (!$stmt2->execute()) {
+
+					$sql3 = "DELETE FROM tickets WHERE visitorID = ?";
+					$stmt3 = $conn->prepare($sql3);
+					$stmt3->bind_param('i', $id);
+
+					if (!$stmt3->execute()) {
+						$ticket_errors['error'] = "Big OOF.";
+						echo "<script type='text/javascript'> 
+						localStorage.setItem('openModal', '#tickets3'); 
+						</script>";
+					}
+					else{
+						$ticket_errors['error'] = "There was an error processing your tickets.";
+						echo "<script type='text/javascript'> 
+						localStorage.setItem('openModal', '#tickets3'); 
+						</script>";
+					}
+
+				}
+				else{
+					$_SESSION['tickets'] = 1;
+					echo "<script type='text/javascript'>
+				    window.alert('Tickets Reserved!');
+    			   	window.location.replace(\"profile.php\");
+				    </script>";
+					exit();
+				}
 			}
 			else{
 				$ticket_errors['error'] = "There was an error processing your tickets.";
@@ -362,12 +495,39 @@ if (isset($_POST['ticketamount'])) {
 			$stmt->bind_param('is', $id, $hex);
 
 			if ($stmt->execute()) {
-				$_SESSION['tickets'] = 1;
-				echo "<script type='text/javascript'>
-			    window.alert('Tickets Reserved!');
-				window.location.replace(\"profile.php\");
-			    </script>";
-				exit();
+				$sql2 = "UPDATE visitor SET Visitor_Balance = 23 * (-4) WHERE visitorID = ?";
+				
+				$stmt2 = $conn->prepare($sql2);
+				$stmt2->bind_param('i', $id);
+
+				if (!$stmt2->execute()) {
+
+					$sql3 = "DELETE FROM tickets WHERE visitorID = ?";
+					$stmt3 = $conn->prepare($sql3);
+					$stmt3->bind_param('i', $id);
+
+					if (!$stmt3->execute()) {
+						$ticket_errors['error'] = "Big OOF.";
+						echo "<script type='text/javascript'> 
+						localStorage.setItem('openModal', '#tickets3'); 
+						</script>";
+					}
+					else{
+						$ticket_errors['error'] = "There was an error processing your tickets.";
+						echo "<script type='text/javascript'> 
+						localStorage.setItem('openModal', '#tickets3'); 
+						</script>";
+					}
+
+				}
+				else{
+					$_SESSION['tickets'] = 1;
+					echo "<script type='text/javascript'>
+				    window.alert('Tickets Reserved!');
+    			   	window.location.replace(\"profile.php\");
+				    </script>";
+					exit();
+				}
 			}
 			else{
 				$ticket_errors['error'] = "There was an error processing your tickets.";
@@ -388,12 +548,39 @@ if (isset($_POST['ticketamount'])) {
 			$stmt->bind_param('is', $id, $hex);
 
 			if ($stmt->execute()) {
-				$_SESSION['tickets'] = 1;
-				echo "<script type='text/javascript'>
-			    window.alert('Tickets Reserved!');
-				window.location.replace(\"profile.php\");
-			    </script>";
-				exit();
+				$sql2 = "UPDATE visitor SET Visitor_Balance = 23 * (-5) WHERE visitorID = ?";
+				
+				$stmt2 = $conn->prepare($sql2);
+				$stmt2->bind_param('i', $id);
+
+				if (!$stmt2->execute()) {
+
+					$sql3 = "DELETE FROM tickets WHERE visitorID = ?";
+					$stmt3 = $conn->prepare($sql3);
+					$stmt3->bind_param('i', $id);
+
+					if (!$stmt3->execute()) {
+						$ticket_errors['error'] = "Big OOF.";
+						echo "<script type='text/javascript'> 
+						localStorage.setItem('openModal', '#tickets3'); 
+						</script>";
+					}
+					else{
+						$ticket_errors['error'] = "There was an error processing your tickets.";
+						echo "<script type='text/javascript'> 
+						localStorage.setItem('openModal', '#tickets3'); 
+						</script>";
+					}
+
+				}
+				else{
+					$_SESSION['tickets'] = 1;
+					echo "<script type='text/javascript'>
+				    window.alert('Tickets Reserved!');
+    			   	window.location.replace(\"profile.php\");
+				    </script>";
+					exit();
+				}
 			}
 			else{
 				$ticket_errors['error'] = "There was an error processing your tickets.";
@@ -489,6 +676,11 @@ if (isset($_POST['accommodation'])) {
 			break;
 	}
 }
+
+
+
+
+// THE TWILIGHT ZONE BELOW, DON'T GO UNLESS REALLY NECESSARY
 
 // RESERVE ACCOMMODATION
 if (isset($_GET['reserve'])) {
@@ -1002,6 +1194,552 @@ if (isset($_GET['reserve'])) {
 			echo "hello?!?!?";
 			break;
 	}
+}
+
+
+// CANCEL RESERVATION
+if (isset($_GET['cancelres'])) {
+	switch ($_GET['cancelres']) {
+
+		case '1':
+
+			$id = $_SESSION['id'];
+			
+			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '1' AND Account_ID IS NOT NULL ";
+			$result = $conn->query($query);
+			$row_cnt = $result->num_rows;
+
+			if ($row_cnt > 0) {
+		
+			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '1' AND Account_ID = ?";
+				$stmt = $conn->prepare($query);
+				$stmt->bind_param('i', $id);
+
+				if ($stmt->execute()) {
+					unset($_SESSION['reservation']);
+					echo "<script type='text/javascript'>
+				    window.alert('Reservation Successfully Canceled!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+				else {
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+
+			}
+			else{
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";		
+			}
+
+			break;
+
+		case '2':
+
+			$id = $_SESSION['id'];
+			
+			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '2' AND Account_ID IS NOT NULL ";
+			$result = $conn->query($query);
+			$row_cnt = $result->num_rows;
+
+			if ($row_cnt > 0) {
+		
+			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '2' AND Account_ID = ?";
+				$stmt = $conn->prepare($query);
+				$stmt->bind_param('i', $id);
+
+				if ($stmt->execute()) {
+					unset($_SESSION['reservation']);
+					echo "<script type='text/javascript'>
+				    window.alert('Reservation Successfully Canceled!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+				else {
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+
+			}
+			else{
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";		
+			}
+
+			break;
+
+		case '3':
+
+			
+			$id = $_SESSION['id'];
+			
+			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '3' AND Account_ID IS NOT NULL ";
+			$result = $conn->query($query);
+			$row_cnt = $result->num_rows;
+
+			if ($row_cnt > 0) {
+		
+			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '3' AND Account_ID = ?";
+				$stmt = $conn->prepare($query);
+				$stmt->bind_param('i', $id);
+
+				if ($stmt->execute()) {
+					unset($_SESSION['reservation']);
+					echo "<script type='text/javascript'>
+				    window.alert('Reservation Successfully Canceled!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+				else {
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+
+			}
+			else{
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";		
+			}
+
+ 
+			break;
+
+		case '4':
+
+			$id = $_SESSION['id'];
+			
+			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '4' AND Account_ID IS NOT NULL ";
+			$result = $conn->query($query);
+			$row_cnt = $result->num_rows;
+
+			if ($row_cnt > 0) {
+		
+			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '4' AND Account_ID = ?";
+				$stmt = $conn->prepare($query);
+				$stmt->bind_param('i', $id);
+
+				if ($stmt->execute()) {
+					unset($_SESSION['reservation']);
+					echo "<script type='text/javascript'>
+				    window.alert('Reservation Successfully Canceled!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+				else {
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+
+			}
+			else{
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";		
+			}
+
+			break;
+
+		case '5':
+
+			$id = $_SESSION['id'];
+			
+			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '5' AND Account_ID IS NOT NULL ";
+			$result = $conn->query($query);
+			$row_cnt = $result->num_rows;
+
+			if ($row_cnt > 0) {
+		
+			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '5' AND Account_ID = ?";
+				$stmt = $conn->prepare($query);
+				$stmt->bind_param('i', $id);
+
+				if ($stmt->execute()) {
+					unset($_SESSION['reservation']);
+					echo "<script type='text/javascript'>
+				    window.alert('Reservation Successfully Canceled!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+				else {
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+
+			}
+			else{
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";		
+			}
+
+			break;
+
+		case '6':
+
+			$id = $_SESSION['id'];
+			
+			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '6' AND Account_ID IS NOT NULL ";
+			$result = $conn->query($query);
+			$row_cnt = $result->num_rows;
+
+			if ($row_cnt > 0) {
+		
+			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '6' AND Account_ID = ?";
+				$stmt = $conn->prepare($query);
+				$stmt->bind_param('i', $id);
+
+				if ($stmt->execute()) {
+					unset($_SESSION['reservation']);
+					echo "<script type='text/javascript'>
+				    window.alert('Reservation Successfully Canceled!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+				else {
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again! 2');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+
+			}
+			else{
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";		
+			}
+
+			break;
+
+		case '7':
+
+			$id = $_SESSION['id'];
+			
+			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '7' AND Account_ID IS NOT NULL ";
+			$result = $conn->query($query);
+			$row_cnt = $result->num_rows;
+
+			if ($row_cnt > 0) {
+		
+			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '7' AND Account_ID = ?";
+				$stmt = $conn->prepare($query);
+				$stmt->bind_param('i', $id);
+
+				if ($stmt->execute()) {
+					unset($_SESSION['reservation']);
+					echo "<script type='text/javascript'>
+				    window.alert('Reservation Successfully Canceled!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+				else {
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+
+			}
+			else{
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";		
+			}
+
+			break;
+
+		case '8':
+
+			$id = $_SESSION['id'];
+			
+			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '8' AND Account_ID IS NOT NULL ";
+			$result = $conn->query($query);
+			$row_cnt = $result->num_rows;
+
+			if ($row_cnt > 0) {
+		
+			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '8' AND Account_ID = ?";
+				$stmt = $conn->prepare($query);
+				$stmt->bind_param('i', $id);
+
+				if ($stmt->execute()) {
+					unset($_SESSION['reservation']);
+					echo "<script type='text/javascript'>
+				    window.alert('Reservation Successfully Canceled!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+				else {
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+
+			}
+			else{
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";		
+			}
+
+			break;
+
+		case '9':
+
+			$id = $_SESSION['id'];
+			
+			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '9' AND Account_ID IS NOT NULL ";
+			$result = $conn->query($query);
+			$row_cnt = $result->num_rows;
+
+			if ($row_cnt > 0) {
+		
+			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '9' AND Account_ID = ?";
+				$stmt = $conn->prepare($query);
+				$stmt->bind_param('i', $id);
+
+				if ($stmt->execute()) {
+					unset($_SESSION['reservation']);
+					echo "<script type='text/javascript'>
+				    window.alert('Reservation Successfully Canceled!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+				else {
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+
+			}
+			else{
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";		
+			}
+
+			break;
+
+		case '10':
+
+			$id = $_SESSION['id'];
+			
+			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '10' AND Account_ID IS NOT NULL ";
+			$result = $conn->query($query);
+			$row_cnt = $result->num_rows;
+
+			if ($row_cnt > 0) {
+		
+			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '10' AND Account_ID = ?";
+				$stmt = $conn->prepare($query);
+				$stmt->bind_param('i', $id);
+
+				if ($stmt->execute()) {
+					unset($_SESSION['reservation']);
+					echo "<script type='text/javascript'>
+				    window.alert('Reservation Successfully Canceled!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+				else {
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+
+			}
+			else{
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";		
+			}
+ 
+			break;
+
+		case '11':
+
+			$id = $_SESSION['id'];
+			
+			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '11' AND Account_ID IS NOT NULL ";
+			$result = $conn->query($query);
+			$row_cnt = $result->num_rows;
+
+			if ($row_cnt > 0) {
+		
+			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '11' AND Account_ID = ?";
+				$stmt = $conn->prepare($query);
+				$stmt->bind_param('i', $id);
+
+				if ($stmt->execute()) {
+					unset($_SESSION['reservation']);
+					echo "<script type='text/javascript'>
+				    window.alert('Reservation Successfully Canceled!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+				else {
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+
+			}
+			else{
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";		
+			}
+
+			break;
+
+		case '12':
+
+			$id = $_SESSION['id'];
+			
+			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '12' AND Account_ID IS NOT NULL ";
+			$result = $conn->query($query);
+			$row_cnt = $result->num_rows;
+
+			if ($row_cnt > 0) {
+		
+			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '12' AND Account_ID = ?";
+				$stmt = $conn->prepare($query);
+				$stmt->bind_param('i', $id);
+
+				if ($stmt->execute()) {
+					unset($_SESSION['reservation']);
+					echo "<script type='text/javascript'>
+				    window.alert('Reservation Successfully Canceled!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+				else {
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+
+			}
+			else{
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";		
+			}
+
+			break;
+
+		case '13':
+
+			$id = $_SESSION['id'];
+			
+			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '13' AND Account_ID IS NOT NULL ";
+			$result = $conn->query($query);
+			$row_cnt = $result->num_rows;
+
+			if ($row_cnt > 0) {
+		
+			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '13' AND Account_ID = ?";
+				$stmt = $conn->prepare($query);
+				$stmt->bind_param('i', $id);
+
+				if ($stmt->execute()) {
+					unset($_SESSION['reservation']);
+					echo "<script type='text/javascript'>
+				    window.alert('Reservation Successfully Canceled!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+				else {
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+
+			}
+			else{
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";		
+			}
+
+			break;
+			
+		case '14':
+
+			$id = $_SESSION['id'];
+			
+			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '14' AND Account_ID IS NOT NULL ";
+			$result = $conn->query($query);
+			$row_cnt = $result->num_rows;
+
+			if ($row_cnt > 0) {
+		
+			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '14' AND Account_ID = ?";
+				$stmt = $conn->prepare($query);
+				$stmt->bind_param('i', $id);
+
+				if ($stmt->execute()) {
+					unset($_SESSION['reservation']);
+					echo "<script type='text/javascript'>
+				    window.alert('Reservation Successfully Canceled!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+				else {
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";
+				}
+
+			}
+			else{
+					echo "<script type='text/javascript'>
+				    window.alert('Error Canceling the Reservation. Please try again!');
+					window.location.replace(\"profile.php\");
+				    </script>";		
+			}
+
+			break;
+
+		default:
+			echo "hello?!?!?";
+			break;
+	}
+
 }
 
 ?>
