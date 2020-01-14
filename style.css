@@ -128,6 +128,21 @@ h3, h4 {
 .container {
   padding: 80px 120px;
 }
+.text-center hr{
+  border: 3px dashed #333333;
+  margin-bottom: 25px;
+}
+.text-center .solid{
+  border: 3px solid #333333;
+  margin-bottom: 25px;
+}
+.text-center .alert-danger{
+  text-align: left;
+  padding-left: 35%;
+}
+.container2 {
+  padding: 80px 0px;
+}
 .person {
   border: 10px solid transparent;
   margin-bottom: 25px;
@@ -160,12 +175,20 @@ h3, h4 {
 .bg-1 h2 {color: #fff;}
 .bg-1 p {font-style: italic;}
 .list-group-item:first-child {
-  border-top-right-radius: 0;
-  border-top-left-radius: 0;
+  border-top-right-radius: 20;
+  border-top-left-radius: 20;
 }
 .list-group-item:last-child {
-  border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 20;
+  border-bottom-left-radius: 20;
+}
+.list-group-item {
+  border: 2px solid #333;
+  width: 60%;
+  left: 20%;
+  right: 20%;
+  color: #777777;
+  font-size: 20px;
 }
 .thumbnail {
   padding: 0 0 15px 0;
@@ -209,7 +232,7 @@ h3, h4 {
 .nav-tabs li a {
   color: #777;
 }
-#googleMap {
+.googleMap {
   width: 100%;
   height: 400px;
   -webkit-filter: grayscale(100%);
@@ -316,7 +339,9 @@ textarea {
   padding: 6px 12px;
   border: 1px solid #ccc;
   border-top: none;
+  border-bottom: none;
 }
+
 
 .tabcontent p, h3, button{
   color: #111;
@@ -328,13 +353,58 @@ textarea {
   border: 1px solid #111;
 }
 
-.tabcontent button{
-  margin-left: 45%;
-}
 
 .tabcontent h5{
   color: #111;
   font-size: 17px;
   font-style: italic;
   font-weight: bold;
+}
+
+div.ticketsbutton {
+  background-color: #ffffff;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+}
+
+.ticketsbutton button{
+  margin-left: 45%;
+}
+
+.ticketsbutton a{
+  margin-left: 43%;
+}
+
+/* MAP */
+iframe {
+  width: 100%;
+  border: 0px;
+}
+
+/* OTHER STUFF */
+.alert-danger{
+  padding-left: 50px;
+}
+
+.btn-block2 {
+  width: 60%;
+  font-size: 25px;
+}
+
+.btn-block3 {
+  width: 45%;
+  font-size: 25px;
+}
+.btn-ct{
+  margin-left: 10%;
+}
+.table.table-striped{
+  max-width: 70%;
+  margin-left: 15%;
+}
+
+.table.table-striped th{
+  text-align: center;
+  font-size: 20px;
 }

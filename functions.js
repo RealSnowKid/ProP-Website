@@ -1,13 +1,3 @@
-// Get the modal
-var modal = document.getElementById('id01');
-
-// When the user clicks anywhere outside of the modal, close it
-window.onclick = function(event) {
-  if (event.target == modal) {
-    modal.style.display = "none";
-  }
-}
-
 $(document).ready(function(){
   // Initialize Tooltip
   $('[data-toggle="tooltip"]').tooltip(); 
@@ -19,7 +9,7 @@ $(document).ready(function(){
     if (this.hash !== "") {
 
       // Prevent default anchor click behavior
-      event.preventDefault();
+      // event.preventDefault();
 
       // Store hash
       var hash = this.hash;
@@ -37,50 +27,22 @@ $(document).ready(function(){
   });
 })
 
-$('#tickets-reg').on('keyup', '#email', function() {
-    var email = $('#email').val();
-    // var regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/g;
-    // if (email.match(regex)) {
-    // $('#message').html('Email OK').css('color', 'green');
-    // }
-    // else if (!email){
-    // $('#message').html('');
-    // }
-    // else {
-    // $('#message').html('Bad Email').css('color', 'red');
-    // }
-    console.log(email); 
-});
+$(document).ready(function(){
+  var modalId = localStorage.getItem('openModal');
+  console.log("Modal ID: " + modalId);
+  if (modalId != null){
+    $(modalId).modal("show");
+    localStorage.removeItem('openModal');
+ }
+})
 
-$('#password').on('keyup', function() {
-    var pass = $('#password').val();
-    var regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/g;
-    if (pass.match(regex)) {
-    $('#message2').html('Password OK').css('color', 'green');
-    }
-    else if (!pass){
-    $('#message2').html('');
-    }
-    else {
-    $('#message2').html('Password Too Weak').css('color', 'red');
-    }   
-});
+// function createItem() {
+//   localStorage.setItem('openModal', '#tickets3');
+// }
 
-$('#password, #repeatpw').on('keyup focus', function () {
-    if ($('#password').val() == $('#repeatpw').val()) {
-      if (!$('#password').val()){
-          $('#message3').html('');
-      }
-      else {
-          $('#message3').html('Passwords Matching').css('color', 'green');    
-      }
-    } 
-    else {
-      $('#message3').html('Passwords Not Matching').css('color', 'red');
-    }
-
-});
-
+// function requestConfirmed() {
+//   alert("Request confirmed. Check your email for details.");
+// }
 
 function openDay (evt, day) {
   var i, tabcontent, tablinks;
@@ -94,16 +56,4 @@ function openDay (evt, day) {
   }
   document.getElementById(day).style.display = "block";
   evt.currentTarget.className += " active";
-}
-
-function d1schedule() {
-  document.getElementById("d1p1n").innerHTML = "Someone";
-  document.getElementById("d1p1t").innerHTML = "22:00" + " CET";
-  document.getElementById("d1p1d").innerHTML = "Someone is good at blah blah";
-  document.getElementById("d1p2n").innerHTML = "Someone 2";
-  document.getElementById("d1p2t").innerHTML = "23:30" + " CET";
-  document.getElementById("d1p2d").innerHTML = "Someone 2 is blah blah blah";
-  document.getElementById("d1p3n").innerHTML = "Someone 3";
-  document.getElementById("d1p3t").innerHTML = "01:10" + " CET";
-  document.getElementById("d1p3d").innerHTML = "Someone 3 is ok aokakak";
 }
