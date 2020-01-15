@@ -91,12 +91,12 @@ require_once 'formActions.php';
     <input type="password" placeholder="Repeat Password" name="repeatpw" id="repeatpw" >
     </div>
     <hr class="solid">
-    <button class="btn btn-block" type="submit" name="register-btn2">Register
+    <button class="btn btn-block bigger" type="submit" name="register-btn2">Register
     <span class="glyphicon glyphicon-ok"></span>
     </button>
   </form>
 
-  <p>Already have an account? Click  <a href="login.php">here</a>.</p>
+  <h3>Already have an account? Click  <a href="login.php">here</a>.</h3>
 
   
 

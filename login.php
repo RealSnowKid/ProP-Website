@@ -86,12 +86,12 @@ require_once 'formActions.php';
     <input type="password" placeholder="Enter Password" name="password" >
     </div>
     <hr class="solid">
-    <button class="btn btn-block" type="submit" name="login-btn2">Log In
+    <button class="btn btn-block bigger" type="submit" name="login-btn2">Log In
     <span class="glyphicon glyphicon-ok"></span>
     </button>
   </form>
 
-  <p>Don't have an account? Click <a href="register.php">here</a>.</p>
+  <h3>Don't have an account? Click <a href="register.php">here</a>.</h3>
 
   
 

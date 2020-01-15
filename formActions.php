@@ -200,40 +200,55 @@ if (isset($_POST['login-btn'])){
 		if (password_verify($password, $user['Account_Pass_hash'])) {
 
 			$id = $user['Account_ID'];
+			$location = "index.php#schedule";
 
 			$_SESSION['id'] = $id;
 			$_SESSION['email'] = $user['Account_Email'];
 			$_SESSION['modal'] = '#tickets3';
+			
 
-			$sql2 = "SELECT visitorID FROM tickets WHERE visitorID = ?";
-			$stmt2 = $conn->prepare($sql2);
-			$stmt2->bind_param('i', $id);
-			$stmt2->execute();
-			$rws = $stmt2->num_rows();
+			$sql2 = "SELECT visitorID FROM tickets WHERE visitorID = '".$id."' LIMIT 1";
 
-			if ($rws > 0) {
-				$_SESSION['tickets'] = 1;
+			if ($result2 = $conn->query($sql2)) {
+				
+			    if ($result2->num_rows > 0) {
+    			    $_SESSION['tickets'] = 1;
+        			unset($_SESSION['modal']);
+	    			$location = "profile.php";
+			    }
+			    else {
+					unset($_SESSION['tickets']);
+					$_SESSION['modal'] = '#tickets3';
+					$location = "index.php#schedule";
+			    }
+
+			    $result2->close();
+
 			}
 			else {
 				unset($_SESSION['tickets']);
 			}
 
-			$sql3 = "SELECT Account_ID, Accommodation_ID FROM accommodation WHERE Account_ID = ?";
-			$stmt3 = $conn->prepare($sql3);
-			$stmt3->bind_param('i', $id);
-			$stmt3->execute();
-			$rws2 = $stmt3->num_rows();
-			$result2 = $stmt3->get_result();
-			$accom = $result2->fetch_assoc();
+			$query = "SELECT Accommodation_ID, Account_ID FROM accommodation WHERE Account_ID = '".$id."' LIMIT 1";
 
-			if ($rws2 > 0) {
-				$_SESSION['reservation'] = $accom['Accommodation_ID'];
+			if ($result2 = $conn->query($query)) {
+
+				if ($result2->num_rows > 0) {
+				    $obj = $result2->fetch_object();
+				    $accomID = $obj->Accommodation_ID;
+				    $_SESSION['reservation'] = $accomID;
+				}
+				else {
+					unset($_SESSION['reservation']);
+				}
+
+			    $result2->close();
 			}
 			else {
 				unset($_SESSION['reservation']);
 			}
 
-			header("Location: index.php#schedule");
+			header("Location: " . $location);
 			exit();
 		}
 		else{
@@ -265,38 +280,50 @@ if (isset($_POST['login-btn2'])){
 		$stmt->execute();
 		$result = $stmt->get_result();
 		$user = $result->fetch_assoc();
+		$stmt->close();
 
 		if (password_verify($password, $user['Account_Pass_hash'])) {
 			$id = $user['Account_ID'];
 
 			$_SESSION['id'] = $id;
 			$_SESSION['email'] = $user['Account_Email'];
+			
 
-			$sql2 = "SELECT visitorID FROM tickets WHERE visitorID = ? LIMIT 1";
-			$stmt2 = $conn->prepare($sql2);
-			$stmt2->bind_param('i', $id);
-			$stmt2->execute();
-			$rws = $stmt2->num_rows();
-			$stmt2->close();
+			$sql2 = "SELECT visitorID FROM tickets WHERE visitorID = '".$id."' LIMIT 1";
 
-			if ($rws > 0) {
-				$_SESSION['tickets'] = 1;
+			if ($result2 = $conn->query($sql2)) {
+				
+			    if ($result2->num_rows > 0) {
+    			    $_SESSION['tickets'] = 1;
+			    }
+			    else {
+					unset($_SESSION['tickets']);
+			    }
+
+			    $result2->close();
+
 			}
 			else {
 				unset($_SESSION['tickets']);
 			}
 
-
 			$query = "SELECT Accommodation_ID, Account_ID FROM accommodation WHERE Account_ID = '".$id."' LIMIT 1";
 
 			if ($result2 = $conn->query($query)) {
 
-			    while ($obj = $result2->fetch_object()) {
-			        $accomID = $obj->Accommodation_ID;
-			    }
-			    $_SESSION['reservation'] = $accomID;
+				if ($result2->num_rows > 0) {
+				    $obj = $result2->fetch_object();
+				    $accomID = $obj->Accommodation_ID;
+				    $_SESSION['reservation'] = $accomID;
+				}
+				else {
+					unset($_SESSION['reservation']);
+				}
 
 			    $result2->close();
+			}
+			else {
+				unset($_SESSION['reservation']);
 			}
 
 			header("Location: profile.php");
@@ -329,6 +356,9 @@ if (isset($_POST['ticketamount'])) {
             $hex = bin2hex(random_bytes(5));
             $id = $_SESSION['id'];
 
+            $query = "SELECT * FROM tickets WHERE ticketHex = '".$hex."'";
+
+
     		$sql = "INSERT INTO tickets (visitorID, ticketHex) VALUES (?, ?)";
 			$stmt = $conn->prepare($sql);
 			$stmt->bind_param('is', $id, $hex);
@@ -347,7 +377,7 @@ if (isset($_POST['ticketamount'])) {
 					$stmt3->bind_param('i', $id);
 
 					if (!$stmt3->execute()) {
-						$ticket_errors['error'] = "Big OOF.";
+						$ticket_errors['error'] = "There is a big error. Please, contact someone!";
 						echo "<script type='text/javascript'> 
 						localStorage.setItem('openModal', '#tickets3'); 
 						</script>";
@@ -401,7 +431,7 @@ if (isset($_POST['ticketamount'])) {
 					$stmt3->bind_param('i', $id);
 
 					if (!$stmt3->execute()) {
-						$ticket_errors['error'] = "Big OOF.";
+						$ticket_errors['error'] = "There is a big error. Please, contact someone!";
 						echo "<script type='text/javascript'> 
 						localStorage.setItem('openModal', '#tickets3'); 
 						</script>";
@@ -454,7 +484,7 @@ if (isset($_POST['ticketamount'])) {
 					$stmt3->bind_param('i', $id);
 
 					if (!$stmt3->execute()) {
-						$ticket_errors['error'] = "Big OOF.";
+						$ticket_errors['error'] = "There is a big error. Please, contact someone!";
 						echo "<script type='text/javascript'> 
 						localStorage.setItem('openModal', '#tickets3'); 
 						</script>";
@@ -507,7 +537,7 @@ if (isset($_POST['ticketamount'])) {
 					$stmt3->bind_param('i', $id);
 
 					if (!$stmt3->execute()) {
-						$ticket_errors['error'] = "Big OOF.";
+						$ticket_errors['error'] = "There is a big error. Please, contact someone!";
 						echo "<script type='text/javascript'> 
 						localStorage.setItem('openModal', '#tickets3'); 
 						</script>";
@@ -560,7 +590,7 @@ if (isset($_POST['ticketamount'])) {
 					$stmt3->bind_param('i', $id);
 
 					if (!$stmt3->execute()) {
-						$ticket_errors['error'] = "Big OOF.";
+						$ticket_errors['error'] = "There is a big error. Please, contact someone!";
 						echo "<script type='text/javascript'> 
 						localStorage.setItem('openModal', '#tickets3'); 
 						</script>";
@@ -591,11 +621,374 @@ if (isset($_POST['ticketamount'])) {
 
         	break;
         default:
-        	echo "hello?!?!?";
+				$ticket_errors['error'] = "There was an error processing your tickets.";
+				echo "<script type='text/javascript'> 
+				localStorage.setItem('openModal', '#tickets3'); 
+				</script>";
         		break;
     }
 }
 
+// CANCEL TICKET
+if (isset($_GET['cancelticket'])) {
+	switch ($_GET['cancelticket']) {
+
+		case '1':
+
+			$id = $_SESSION['id'];
+
+			$sql = "SELECT ticketHex FROM tickets WHERE visitorID=? LIMIT 1";
+			$stmt = $conn->prepare($sql);
+			$stmt->bind_param('i', $id);
+			
+			if ($stmt->execute()) {
+				$result = $stmt->get_result();
+				$string = $result->fetch_assoc();
+				$ticketHex = $string['ticketHex'];
+				$stmt->close();
+
+				$sql3 = "UPDATE visitor SET Visitor_Balance = Visitor_Balance + (23 * 1) WHERE visitorID = ?";
+				$stmt3 = $conn->prepare($sql3);
+				$stmt3->bind_param('i', $id);
+
+				if ($stmt3->execute()) {
+					$stmt3->close();
+					$newHex = substr($ticketHex, 10);
+
+					if (strlen($newHex) > 0) {
+						$sql2 = "UPDATE tickets SET ticketHex=? WHERE visitorID=?";
+						$stmt2 = $conn->prepare($sql2);
+						$stmt2->bind_param('si', $newHex, $id);
+
+						if ($stmt2->execute()) {
+							$stmt2->close();
+							echo "<script type='text/javascript'>
+						    window.alert('Ticket Cancelled!');
+		    			   	window.location.replace(\"profile.php\");
+						    </script>";
+						}
+						else {
+							echo "error: " . $stmt2->error;					
+						}
+					}
+					else {
+
+						$sql4 = "DELETE FROM tickets WHERE visitorID = ?";
+						$stmt4 = $conn->prepare($sql4);
+						$stmt4->bind_param('i', $id);
+
+						if ($stmt4->execute()) {
+							unset($_SESSION['tickets']);
+							echo "<script type='text/javascript'>
+						    window.alert('Ticket Cancelled!');
+		    			   	window.location.replace(\"profile.php\");
+						    </script>";
+						}
+
+						else{
+							echo "error: " . $stmt4->error;
+						}
+
+					}
+
+				}
+				else {
+					echo "error: " . $stmt3->error;
+				}
+	
+			}
+			else {
+				echo "error: " . $stmt->error;
+			}
+
+
+			break;
+
+		case '2':
+
+			$id = $_SESSION['id'];
+
+			$sql = "SELECT ticketHex FROM tickets WHERE visitorID=? LIMIT 1";
+			$stmt = $conn->prepare($sql);
+			$stmt->bind_param('i', $id);
+			
+			if ($stmt->execute()) {
+				$result = $stmt->get_result();
+				$string = $result->fetch_assoc();
+				$ticketHex = $string['ticketHex'];
+				$stmt->close();
+
+				$sql3 = "UPDATE visitor SET Visitor_Balance = Visitor_Balance + (23 * 1) WHERE visitorID = ?";
+				$stmt3 = $conn->prepare($sql3);
+				$stmt3->bind_param('i', $id);
+
+				if ($stmt3->execute()) {
+					$stmt3->close();
+					$newHex = substr($ticketHex, 0, 10) . substr($ticketHex, 20);
+
+					if (strlen($newHex) > 0) {
+						$sql2 = "UPDATE tickets SET ticketHex=? WHERE visitorID=?";
+						$stmt2 = $conn->prepare($sql2);
+						$stmt2->bind_param('si', $newHex, $id);
+
+						if ($stmt2->execute()) {
+							$stmt2->close();
+							echo "<script type='text/javascript'>
+						    window.alert('Ticket Cancelled!');
+		    			   	window.location.replace(\"profile.php\");
+						    </script>";
+						}
+						else {
+							echo "error: " . $stmt2->error;					
+						}
+					}
+					else {
+
+						$sql4 = "DELETE FROM tickets WHERE visitorID = ?";
+						$stmt4 = $conn->prepare($sql4);
+						$stmt4->bind_param('i', $id);
+
+						if ($stmt4->execute()) {
+							unset($_SESSION['tickets']);
+							echo "<script type='text/javascript'>
+						    window.alert('Ticket Cancelled!');
+		    			   	window.location.replace(\"profile.php\");
+						    </script>";
+						}
+
+						else{
+							echo "error: " . $stmt4->error;
+						}
+
+					}
+
+				}
+				else {
+					echo "error: " . $stmt3->error;
+				}
+	
+			}
+			else {
+				echo "error: " . $stmt->error;
+			}
+
+			break;
+
+		case '3':
+
+			$id = $_SESSION['id'];
+
+			$sql = "SELECT ticketHex FROM tickets WHERE visitorID=? LIMIT 1";
+			$stmt = $conn->prepare($sql);
+			$stmt->bind_param('i', $id);
+			
+			if ($stmt->execute()) {
+				$result = $stmt->get_result();
+				$string = $result->fetch_assoc();
+				$ticketHex = $string['ticketHex'];
+				$stmt->close();
+
+				$sql3 = "UPDATE visitor SET Visitor_Balance = Visitor_Balance + (23 * 1) WHERE visitorID = ?";
+				$stmt3 = $conn->prepare($sql3);
+				$stmt3->bind_param('i', $id);
+
+				if ($stmt3->execute()) {
+					$stmt3->close();
+					$newHex = substr($ticketHex, 0, 20) . substr($ticketHex, 30);
+
+					if (strlen($newHex) > 0) {
+						$sql2 = "UPDATE tickets SET ticketHex=? WHERE visitorID=?";
+						$stmt2 = $conn->prepare($sql2);
+						$stmt2->bind_param('si', $newHex, $id);
+
+						if ($stmt2->execute()) {
+							$stmt2->close();
+							echo "<script type='text/javascript'>
+						    window.alert('Ticket Cancelled!');
+		    			   	window.location.replace(\"profile.php\");
+						    </script>";
+						}
+						else {
+							echo "error: " . $stmt2->error;					
+						}
+					}
+					else {
+
+						$sql4 = "DELETE FROM tickets WHERE visitorID = ?";
+						$stmt4 = $conn->prepare($sql4);
+						$stmt4->bind_param('i', $id);
+
+						if ($stmt4->execute()) {
+							unset($_SESSION['tickets']);
+							echo "<script type='text/javascript'>
+						    window.alert('Ticket Cancelled!');
+		    			   	window.location.replace(\"profile.php\");
+						    </script>";
+						}
+
+						else{
+							echo "error: " . $stmt4->error;
+						}
+
+					}
+
+				}
+				else {
+					echo "error: " . $stmt3->error;
+				}
+	
+			}
+			else {
+				echo "error: " . $stmt->error;
+			}
+
+			break;
+
+		case '4':
+
+			$id = $_SESSION['id'];
+
+			$sql = "SELECT ticketHex FROM tickets WHERE visitorID=? LIMIT 1";
+			$stmt = $conn->prepare($sql);
+			$stmt->bind_param('i', $id);
+			
+			if ($stmt->execute()) {
+				$result = $stmt->get_result();
+				$string = $result->fetch_assoc();
+				$ticketHex = $string['ticketHex'];
+				$stmt->close();
+
+				$sql3 = "UPDATE visitor SET Visitor_Balance = Visitor_Balance + (23 * 1) WHERE visitorID = ?";
+				$stmt3 = $conn->prepare($sql3);
+				$stmt3->bind_param('i', $id);
+
+				if ($stmt3->execute()) {
+					$stmt3->close();
+					$newHex = substr($ticketHex, 0, 30) . substr($ticketHex, 40);
+
+					if (strlen($newHex) > 0) {
+						$sql2 = "UPDATE tickets SET ticketHex=? WHERE visitorID=?";
+						$stmt2 = $conn->prepare($sql2);
+						$stmt2->bind_param('si', $newHex, $id);
+
+						if ($stmt2->execute()) {
+							$stmt2->close();
+							echo "<script type='text/javascript'>
+						    window.alert('Ticket Cancelled!');
+		    			   	window.location.replace(\"profile.php\");
+						    </script>";
+						}
+						else {
+							echo "error: " . $stmt2->error;					
+						}
+					}
+					else {
+
+						$sql4 = "DELETE FROM tickets WHERE visitorID = ?";
+						$stmt4 = $conn->prepare($sql4);
+						$stmt4->bind_param('i', $id);
+
+						if ($stmt4->execute()) {
+							unset($_SESSION['tickets']);
+							echo "<script type='text/javascript'>
+						    window.alert('Ticket Cancelled!');
+		    			   	window.location.replace(\"profile.php\");
+						    </script>";
+						}
+
+						else{
+							echo "error: " . $stmt4->error;
+						}
+
+					}
+
+				}
+				else {
+					echo "error: " . $stmt3->error;
+				}
+	
+			}
+			else {
+				echo "error: " . $stmt->error;
+			}
+
+			break;
+
+		case '5':
+
+			$id = $_SESSION['id'];
+
+			$sql = "SELECT ticketHex FROM tickets WHERE visitorID=? LIMIT 1";
+			$stmt = $conn->prepare($sql);
+			$stmt->bind_param('i', $id);
+			
+			if ($stmt->execute()) {
+				$result = $stmt->get_result();
+				$string = $result->fetch_assoc();
+				$ticketHex = $string['ticketHex'];
+				$stmt->close();
+
+				$sql3 = "UPDATE visitor SET Visitor_Balance = Visitor_Balance + (23 * 1) WHERE visitorID = ?";
+				$stmt3 = $conn->prepare($sql3);
+				$stmt3->bind_param('i', $id);
+
+				if ($stmt3->execute()) {
+					$stmt3->close();
+					$newHex = substr($ticketHex, 0, 40);
+
+					if (strlen($newHex) > 0) {
+						$sql2 = "UPDATE tickets SET ticketHex=? WHERE visitorID=?";
+						$stmt2 = $conn->prepare($sql2);
+						$stmt2->bind_param('si', $newHex, $id);
+
+						if ($stmt2->execute()) {
+							$stmt2->close();
+							echo "<script type='text/javascript'>
+						    window.alert('Ticket Cancelled!');
+		    			   	window.location.replace(\"profile.php\");
+						    </script>";
+						}
+						else {
+							echo "error: " . $stmt2->error;					
+						}
+					}
+					else {
+
+						$sql4 = "DELETE FROM tickets WHERE visitorID = ?";
+						$stmt4 = $conn->prepare($sql4);
+						$stmt4->bind_param('i', $id);
+
+						if ($stmt4->execute()) {
+							unset($_SESSION['tickets']);
+							echo "<script type='text/javascript'>
+						    window.alert('Ticket Cancelled!');
+		    			   	window.location.replace(\"profile.php\");
+						    </script>";
+						}
+
+						else{
+							echo "error: " . $stmt4->error;
+						}
+
+					}
+
+				}
+				else {
+					echo "error: " . $stmt3->error;
+				}
+	
+			}
+			else {
+				echo "error: " . $stmt->error;
+			}
+
+			break;
+
+        default:
+        	echo "hello?!?!?";
+        		break;
+	}
+}
 
 // ACCOMMODATION
 if (isset($_POST['accommodation'])) {
@@ -1218,7 +1611,7 @@ if (isset($_GET['cancelres'])) {
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
 					echo "<script type='text/javascript'>
-				    window.alert('Reservation Successfully Canceled!');
+				    window.alert('Reservation Successfully Cancelled!');
 					window.location.replace(\"profile.php\");
 				    </script>";
 				}
@@ -1256,7 +1649,7 @@ if (isset($_GET['cancelres'])) {
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
 					echo "<script type='text/javascript'>
-				    window.alert('Reservation Successfully Canceled!');
+				    window.alert('Reservation Successfully Cancelled!');
 					window.location.replace(\"profile.php\");
 				    </script>";
 				}
@@ -1295,7 +1688,7 @@ if (isset($_GET['cancelres'])) {
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
 					echo "<script type='text/javascript'>
-				    window.alert('Reservation Successfully Canceled!');
+				    window.alert('Reservation Successfully Cancelled!');
 					window.location.replace(\"profile.php\");
 				    </script>";
 				}
@@ -1334,7 +1727,7 @@ if (isset($_GET['cancelres'])) {
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
 					echo "<script type='text/javascript'>
-				    window.alert('Reservation Successfully Canceled!');
+				    window.alert('Reservation Successfully Cancelled!');
 					window.location.replace(\"profile.php\");
 				    </script>";
 				}
@@ -1372,7 +1765,7 @@ if (isset($_GET['cancelres'])) {
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
 					echo "<script type='text/javascript'>
-				    window.alert('Reservation Successfully Canceled!');
+				    window.alert('Reservation Successfully Cancelled!');
 					window.location.replace(\"profile.php\");
 				    </script>";
 				}
@@ -1410,7 +1803,7 @@ if (isset($_GET['cancelres'])) {
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
 					echo "<script type='text/javascript'>
-				    window.alert('Reservation Successfully Canceled!');
+				    window.alert('Reservation Successfully Cancelled!');
 					window.location.replace(\"profile.php\");
 				    </script>";
 				}
@@ -1448,7 +1841,7 @@ if (isset($_GET['cancelres'])) {
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
 					echo "<script type='text/javascript'>
-				    window.alert('Reservation Successfully Canceled!');
+				    window.alert('Reservation Successfully Cancelled!');
 					window.location.replace(\"profile.php\");
 				    </script>";
 				}
@@ -1486,7 +1879,7 @@ if (isset($_GET['cancelres'])) {
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
 					echo "<script type='text/javascript'>
-				    window.alert('Reservation Successfully Canceled!');
+				    window.alert('Reservation Successfully Cancelled!');
 					window.location.replace(\"profile.php\");
 				    </script>";
 				}
@@ -1524,7 +1917,7 @@ if (isset($_GET['cancelres'])) {
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
 					echo "<script type='text/javascript'>
-				    window.alert('Reservation Successfully Canceled!');
+				    window.alert('Reservation Successfully Cancelled!');
 					window.location.replace(\"profile.php\");
 				    </script>";
 				}
@@ -1562,7 +1955,7 @@ if (isset($_GET['cancelres'])) {
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
 					echo "<script type='text/javascript'>
-				    window.alert('Reservation Successfully Canceled!');
+				    window.alert('Reservation Successfully Cancelled!');
 					window.location.replace(\"profile.php\");
 				    </script>";
 				}
@@ -1600,7 +1993,7 @@ if (isset($_GET['cancelres'])) {
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
 					echo "<script type='text/javascript'>
-				    window.alert('Reservation Successfully Canceled!');
+				    window.alert('Reservation Successfully Cancelled!');
 					window.location.replace(\"profile.php\");
 				    </script>";
 				}
@@ -1638,7 +2031,7 @@ if (isset($_GET['cancelres'])) {
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
 					echo "<script type='text/javascript'>
-				    window.alert('Reservation Successfully Canceled!');
+				    window.alert('Reservation Successfully Cancelled!');
 					window.location.replace(\"profile.php\");
 				    </script>";
 				}
@@ -1676,7 +2069,7 @@ if (isset($_GET['cancelres'])) {
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
 					echo "<script type='text/javascript'>
-				    window.alert('Reservation Successfully Canceled!');
+				    window.alert('Reservation Successfully Cancelled!');
 					window.location.replace(\"profile.php\");
 				    </script>";
 				}
@@ -1714,7 +2107,7 @@ if (isset($_GET['cancelres'])) {
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
 					echo "<script type='text/javascript'>
-				    window.alert('Reservation Successfully Canceled!');
+				    window.alert('Reservation Successfully Cancelled!');
 					window.location.replace(\"profile.php\");
 				    </script>";
 				}

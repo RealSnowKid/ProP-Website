@@ -68,18 +68,18 @@ if (!isset($_SESSION['id'])) {
 	<h1>Welcome <?php if (isset($_SESSION['email'])) {
 		echo $_SESSION['email'];
 		// echo "<br>";
-		// echo $_SESSION['test'];
-		// echo "<br>";
 		// echo $_SESSION['id'];
 		// echo "<br>";
 		// echo $_SESSION['tickets'];
+		// echo "<br>";
+		// echo $_SESSION['reservation'];
 	} ?>,</h1>
 	<h1>this is your profile page.</h1>
 	<br>
 	<a href="profile.php?logout=1" class="btn btn-block3">Log Out</a>
 	<br>
 	<hr>
-	<h2>Purchased Tickets:</h2>
+	<h2>Reserved Tickets:</h2>
 	<br>
 
 	<?php
@@ -88,14 +88,14 @@ if (!isset($_SESSION['id'])) {
 		$stmt->bind_param('i', $_SESSION['id']);
 		$stmt->execute();
 		$result = $stmt->get_result();
-		$strings = $result->fetch_assoc();
-		$ticketHex = $strings['ticketHex'];
+		$string = $result->fetch_assoc();
+		$ticketHex = $string['ticketHex'];
 
 		switch (strlen ($ticketHex)) {
 			case '10':
 				$t1 = $ticketHex;
 				echo "<ul class=\"list-group\">
-					  <li class=\"list-group-item\">Ticket Code: " . $t1 . " <!-- <button class=\"btn btn-ct\">Cancel Ticket</button> --></li>
+					  <li class=\"list-group-item\">Ticket Code: " . $t1 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=1\">Cancel Ticket</a> </li>
 					  </ul>";
 				break;
 
@@ -103,8 +103,8 @@ if (!isset($_SESSION['id'])) {
 				$t1 = substr($ticketHex, 0, 10);
 				$t2 = substr($ticketHex, 10, 10);
 				echo "<ul class=\"list-group\">
-					  <li class=\"list-group-item\">Ticket Code: " . $t1 . "</li>
-  					  <li class=\"list-group-item\">Ticket Code: " . $t2 . "</li>
+					  <li class=\"list-group-item\">Ticket Code: " . $t1 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=1\">Cancel Ticket</a> </li>
+  					  <li class=\"list-group-item\">Ticket Code: " . $t2 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=2\">Cancel Ticket</a> </li>
 					  </ul>";
 				break;
 
@@ -113,9 +113,9 @@ if (!isset($_SESSION['id'])) {
 				$t2 = substr($ticketHex, 10, 10);
 				$t3 = substr($ticketHex, 20, 10);
 				echo "<ul class=\"list-group\">
-					  <li class=\"list-group-item\">Ticket Code: " . $t1 . "</li>
-  					  <li class=\"list-group-item\">Ticket Code: " . $t2 . "</li>
-					  <li class=\"list-group-item\">Ticket Code: " . $t3 . "</li>
+					  <li class=\"list-group-item\">Ticket Code: " . $t1 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=1\">Cancel Ticket</a> </li>
+  					  <li class=\"list-group-item\">Ticket Code: " . $t2 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=2\">Cancel Ticket</a> </li>
+					  <li class=\"list-group-item\">Ticket Code: " . $t3 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=3\">Cancel Ticket</a> </li>
 					  </ul>";
 				break;
 
@@ -125,10 +125,10 @@ if (!isset($_SESSION['id'])) {
 				$t3 = substr($ticketHex, 20, 10);
 				$t4 = substr($ticketHex, 30, 10);
 				echo "<ul class=\"list-group\">
-					  <li class=\"list-group-item\">Ticket Code: " . $t1 . "</li>
-  					  <li class=\"list-group-item\">Ticket Code: " . $t2 . "</li>
-					  <li class=\"list-group-item\">Ticket Code: " . $t3 . "</li>
-					  <li class=\"list-group-item\">Ticket Code: " . $t4 . "</li>
+					  <li class=\"list-group-item\">Ticket Code: " . $t1 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=1\">Cancel Ticket</a> </li>
+  					  <li class=\"list-group-item\">Ticket Code: " . $t2 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=2\">Cancel Ticket</a> </li>
+					  <li class=\"list-group-item\">Ticket Code: " . $t3 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=3\">Cancel Ticket</a> </li>
+					  <li class=\"list-group-item\">Ticket Code: " . $t4 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=4\">Cancel Ticket</a> </li>
 					  </ul>";
 				break;
 
@@ -139,15 +139,29 @@ if (!isset($_SESSION['id'])) {
 				$t4 = substr($ticketHex, 30, 10);
 				$t5 = substr($ticketHex, 40, 10);
 				echo "<ul class=\"list-group\">
-					  <li class=\"list-group-item\">Ticket Code: " . $t1 . "</li>
-  					  <li class=\"list-group-item\">Ticket Code: " . $t2 . "</li>
-					  <li class=\"list-group-item\">Ticket Code: " . $t3 . "</li>
-					  <li class=\"list-group-item\">Ticket Code: " . $t4 . "</li>
-					  <li class=\"list-group-item\">Ticket Code: " . $t5 . "</li>
+					  <li class=\"list-group-item\">Ticket Code: " . $t1 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=1\">Cancel Ticket</a> </li>
+  					  <li class=\"list-group-item\">Ticket Code: " . $t2 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=2\">Cancel Ticket</a> </li>
+					  <li class=\"list-group-item\">Ticket Code: " . $t3 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=3\">Cancel Ticket</a> </li>
+					  <li class=\"list-group-item\">Ticket Code: " . $t4 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=4\">Cancel Ticket</a> </li>
+					  <li class=\"list-group-item\">Ticket Code: " . $t5 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=5\">Cancel Ticket</a> </li>
 					  </ul>";
 				break;
 			
 			default:
+				$id = $_SESSION['id'];
+				unset($_SESSION['tickets']);
+
+				$sql = "UPDATE accommodation SET Account_ID = NULL WHERE Account_ID = '".$id."'";
+
+				if (!$conn->query($sql)) {
+					echo "<script type='text/javascript'> 
+				    window.alert('There is a big error. Please, contact someone!');
+					</script>";
+				}
+				else {
+					unset($_SESSION['reservation']);
+				}
+
 				echo "<h3>You have not yet purchased any tickets!</h3>";
 				echo "<br>";
 				echo "<a class=\"btn btn-block3\" href=\"index.php#schedule\">To Tickets</a>";

@@ -267,7 +267,7 @@ if ($_SESSION['modal'] == '#tickets3') {
       </a>
       <div id="perf2" class="collapse">
         <p><span class="flag-icon flag-icon-nl"></span> Dutch DJ</p>
-        <p>A world-class performer and DJ, the "grandfather" of EDM.</p>
+        <p>A world-class performer and DJ, the "godfather" of EDM.</p>
       </div>
     </div>
     <div class="col-sm-4">
