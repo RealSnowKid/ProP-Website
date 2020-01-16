@@ -2,9 +2,9 @@
 ###### *DEVELOPED BY __IVAN BANOV__*
 
 # WEBSITE PREVIEW
-#### Live website version available over at: [i403318.hera.fhict.nl] 
+##### Live website version available over at: [i403318.hera.fhict.nl](i403318.hera.fhict.nl)
 
-[logo]: https://git.fhict.nl/I403318/propwebsite/blob/master/JIP_logo.png "Website Preview"
+[logo]: https://git.fhict.nl/I403318/propwebsite/blob/master/Website_Pic.png "Website Preview"
 
 # TEAM
 * [John Nguyên](https://git.fhict.nl/I390706) - *TEAM LEADER*
@@ -14,7 +14,7 @@
 ### TEAM LOGO
 [logo]: https://git.fhict.nl/I403318/propwebsite/blob/master/JIP_logo.png "Our Logo"
 
-# Technologies
+# TECHNOLOGIES
 #### We have used PHP, MYSQL and CSS, vanilla.
 
 # FOOTNOTES
