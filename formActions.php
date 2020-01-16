@@ -3,6 +3,7 @@
 session_start();
 
 require 'db.php';
+require_once 'emailer.php';
 
 // Array for errors and storing email in case of mistake by user
 $reg_errors = array();
@@ -11,6 +12,11 @@ $accom_errors = array();
 $ticket_errors = array();
 $email = "";
 $log_email = "";
+
+// TEST EMAIL
+// if (isset($_GET['sendemail'])) {
+// 	mail('prop2020mail@gmail.com', 'TEST', 'LMAO REKT.');
+// }
 
 // REGISTER
 if (isset($_POST['register-btn'])){
@@ -75,8 +81,8 @@ if (isset($_POST['register-btn'])){
 
 		if($stmt->execute()){
 			$user_id = $conn->insert_id;
-			//Enter data into visitor table
-			$sql = "INSERT INTO visitor (visitorID) VALUES (?)";
+			//Enter data into customer table
+			$sql = "INSERT INTO customer (customerID) VALUES (?)";
 			$stmt = $conn->prepare($sql);
 			$stmt->bind_param('i', $user_id);
 			if ($stmt->execute()) {
@@ -88,14 +94,14 @@ if (isset($_POST['register-btn'])){
 				exit();
 			}
 			else{
-				$reg_errors['db_error'] = "Database error: failed to register";
+				$reg_errors['db_error'] = "Database error: failed to register" . $stmt->error();;
 				echo "<script type='text/javascript'> 
 				localStorage.setItem('openModal', '#tickets1'); 
 				</script>";
 			}
 		}
 		else{
-			$reg_errors['db_error'] = "Database error: failed to register";
+			$reg_errors['db_error'] = "Database error: failed to register" . $stmt->error();;
 			echo "<script type='text/javascript'> 
 			localStorage.setItem('openModal', '#tickets1'); 
 			</script>";
@@ -150,23 +156,26 @@ if (isset($_POST['register-btn2'])){
 
 		if($stmt->execute()){
 			$user_id = $conn->insert_id;
-			//Enter data into visitor table
-			$sql = "INSERT INTO visitor (visitorID) VALUES (?)";
+			$stmt->close();
+			//Enter data into customer table
+			$sql = "INSERT INTO customer (customerID) VALUES (?)";
 			$stmt = $conn->prepare($sql);
 			$stmt->bind_param('i', $user_id);
 			if ($stmt->execute()) {
 				//Login the user
 				$_SESSION['id'] = $user_id;
 				$_SESSION['email'] = $email;
+				unset($_SESSION['tickets']);
+				unset($_SESSION['reservation']);
 				header("Location: profile.php");
 				exit();
 			}
 			else{
-				$reg_errors['db_error'] = "Database error: failed to register";;
+				$reg_errors['db_error'] = "Database error: failed to register " . $stmt->error();
 			}
 		}
 		else{
-			$reg_errors['db_error'] = "Database error: failed to register";
+			$reg_errors['db_error'] = "Database error: failed to register " . $stmt->error();
 		}
 	}
 }
@@ -207,7 +216,7 @@ if (isset($_POST['login-btn'])){
 			$_SESSION['modal'] = '#tickets3';
 			
 
-			$sql2 = "SELECT visitorID FROM tickets WHERE visitorID = '".$id."' LIMIT 1";
+			$sql2 = "SELECT customerID FROM tickets WHERE customerID = '".$id."' LIMIT 1";
 
 			if ($result2 = $conn->query($sql2)) {
 				
@@ -289,7 +298,7 @@ if (isset($_POST['login-btn2'])){
 			$_SESSION['email'] = $user['Account_Email'];
 			
 
-			$sql2 = "SELECT visitorID FROM tickets WHERE visitorID = '".$id."' LIMIT 1";
+			$sql2 = "SELECT customerID FROM tickets WHERE customerID = '".$id."' LIMIT 1";
 
 			if ($result2 = $conn->query($sql2)) {
 				
@@ -356,23 +365,22 @@ if (isset($_POST['ticketamount'])) {
             $hex = bin2hex(random_bytes(5));
             $id = $_SESSION['id'];
 
-            $query = "SELECT * FROM tickets WHERE ticketHex = '".$hex."'";
 
 
-    		$sql = "INSERT INTO tickets (visitorID, ticketHex) VALUES (?, ?)";
+    		$sql = "INSERT INTO tickets (customerID, ticketHex) VALUES (?, ?)";
 			$stmt = $conn->prepare($sql);
 			$stmt->bind_param('is', $id, $hex);
 
 			if ($stmt->execute()) {
 
-				$sql2 = "UPDATE visitor SET Visitor_Balance = 23 * (-1) WHERE visitorID = ?";
+				$sql2 = "UPDATE customer SET balance = 23 * (-1) WHERE customerID = ?";
 				
 				$stmt2 = $conn->prepare($sql2);
 				$stmt2->bind_param('i', $id);
 
 				if (!$stmt2->execute()) {
 
-					$sql3 = "DELETE FROM tickets WHERE visitorID = ?";
+					$sql3 = "DELETE FROM tickets WHERE customerID = ?";
 					$stmt3 = $conn->prepare($sql3);
 					$stmt3->bind_param('i', $id);
 
@@ -413,20 +421,20 @@ if (isset($_POST['ticketamount'])) {
             $id = $_SESSION['id'];
 
 
-    		$sql = "INSERT INTO tickets (visitorID, ticketHex) VALUES (?, ?)";
+    		$sql = "INSERT INTO tickets (customerID, ticketHex) VALUES (?, ?)";
 			$stmt = $conn->prepare($sql);
 			$stmt->bind_param('is', $id, $hex);
 
 			if ($stmt->execute()) {
 
-				$sql2 = "UPDATE visitor SET Visitor_Balance = 23 * (-2) WHERE visitorID = ?";
+				$sql2 = "UPDATE customer SET balance = 23 * (-2) WHERE customerID = ?";
 				
 				$stmt2 = $conn->prepare($sql2);
 				$stmt2->bind_param('i', $id);
 
 				if (!$stmt2->execute()) {
 
-					$sql3 = "DELETE FROM tickets WHERE visitorID = ?";
+					$sql3 = "DELETE FROM tickets WHERE customerID = ?";
 					$stmt3 = $conn->prepare($sql3);
 					$stmt3->bind_param('i', $id);
 
@@ -467,19 +475,19 @@ if (isset($_POST['ticketamount'])) {
             $id = $_SESSION['id'];
 
 
-    		$sql = "INSERT INTO tickets (visitorID, ticketHex) VALUES (?, ?)";
+    		$sql = "INSERT INTO tickets (customerID, ticketHex) VALUES (?, ?)";
 			$stmt = $conn->prepare($sql);
 			$stmt->bind_param('is', $id, $hex);
 
 			if ($stmt->execute()) {
-				$sql2 = "UPDATE visitor SET Visitor_Balance = 23 * (-3) WHERE visitorID = ?";
+				$sql2 = "UPDATE customer SET balance = 23 * (-3) WHERE customerID = ?";
 				
 				$stmt2 = $conn->prepare($sql2);
 				$stmt2->bind_param('i', $id);
 
 				if (!$stmt2->execute()) {
 
-					$sql3 = "DELETE FROM tickets WHERE visitorID = ?";
+					$sql3 = "DELETE FROM tickets WHERE customerID = ?";
 					$stmt3 = $conn->prepare($sql3);
 					$stmt3->bind_param('i', $id);
 
@@ -520,19 +528,19 @@ if (isset($_POST['ticketamount'])) {
             $id = $_SESSION['id'];
 
 
-    		$sql = "INSERT INTO tickets (visitorID, ticketHex) VALUES (?, ?)";
+    		$sql = "INSERT INTO tickets (customerID, ticketHex) VALUES (?, ?)";
 			$stmt = $conn->prepare($sql);
 			$stmt->bind_param('is', $id, $hex);
 
 			if ($stmt->execute()) {
-				$sql2 = "UPDATE visitor SET Visitor_Balance = 23 * (-4) WHERE visitorID = ?";
+				$sql2 = "UPDATE customer SET balance = 23 * (-4) WHERE customerID = ?";
 				
 				$stmt2 = $conn->prepare($sql2);
 				$stmt2->bind_param('i', $id);
 
 				if (!$stmt2->execute()) {
 
-					$sql3 = "DELETE FROM tickets WHERE visitorID = ?";
+					$sql3 = "DELETE FROM tickets WHERE customerID = ?";
 					$stmt3 = $conn->prepare($sql3);
 					$stmt3->bind_param('i', $id);
 
@@ -573,19 +581,19 @@ if (isset($_POST['ticketamount'])) {
             $id = $_SESSION['id'];
 
 
-    		$sql = "INSERT INTO tickets (visitorID, ticketHex) VALUES (?, ?)";
+    		$sql = "INSERT INTO tickets (customerID, ticketHex) VALUES (?, ?)";
 			$stmt = $conn->prepare($sql);
 			$stmt->bind_param('is', $id, $hex);
 
 			if ($stmt->execute()) {
-				$sql2 = "UPDATE visitor SET Visitor_Balance = 23 * (-5) WHERE visitorID = ?";
+				$sql2 = "UPDATE customer SET balance = 23 * (-5) WHERE customerID = ?";
 				
 				$stmt2 = $conn->prepare($sql2);
 				$stmt2->bind_param('i', $id);
 
 				if (!$stmt2->execute()) {
 
-					$sql3 = "DELETE FROM tickets WHERE visitorID = ?";
+					$sql3 = "DELETE FROM tickets WHERE customerID = ?";
 					$stmt3 = $conn->prepare($sql3);
 					$stmt3->bind_param('i', $id);
 
@@ -637,7 +645,7 @@ if (isset($_GET['cancelticket'])) {
 
 			$id = $_SESSION['id'];
 
-			$sql = "SELECT ticketHex FROM tickets WHERE visitorID=? LIMIT 1";
+			$sql = "SELECT ticketHex FROM tickets WHERE customerID=? LIMIT 1";
 			$stmt = $conn->prepare($sql);
 			$stmt->bind_param('i', $id);
 			
@@ -647,7 +655,7 @@ if (isset($_GET['cancelticket'])) {
 				$ticketHex = $string['ticketHex'];
 				$stmt->close();
 
-				$sql3 = "UPDATE visitor SET Visitor_Balance = Visitor_Balance + (23 * 1) WHERE visitorID = ?";
+				$sql3 = "UPDATE customer SET balance = balance + (23 * 1) WHERE customerID = ?";
 				$stmt3 = $conn->prepare($sql3);
 				$stmt3->bind_param('i', $id);
 
@@ -656,7 +664,7 @@ if (isset($_GET['cancelticket'])) {
 					$newHex = substr($ticketHex, 10);
 
 					if (strlen($newHex) > 0) {
-						$sql2 = "UPDATE tickets SET ticketHex=? WHERE visitorID=?";
+						$sql2 = "UPDATE tickets SET ticketHex=? WHERE customerID=?";
 						$stmt2 = $conn->prepare($sql2);
 						$stmt2->bind_param('si', $newHex, $id);
 
@@ -673,7 +681,7 @@ if (isset($_GET['cancelticket'])) {
 					}
 					else {
 
-						$sql4 = "DELETE FROM tickets WHERE visitorID = ?";
+						$sql4 = "DELETE FROM tickets WHERE customerID = ?";
 						$stmt4 = $conn->prepare($sql4);
 						$stmt4->bind_param('i', $id);
 
@@ -708,7 +716,7 @@ if (isset($_GET['cancelticket'])) {
 
 			$id = $_SESSION['id'];
 
-			$sql = "SELECT ticketHex FROM tickets WHERE visitorID=? LIMIT 1";
+			$sql = "SELECT ticketHex FROM tickets WHERE customerID=? LIMIT 1";
 			$stmt = $conn->prepare($sql);
 			$stmt->bind_param('i', $id);
 			
@@ -718,7 +726,7 @@ if (isset($_GET['cancelticket'])) {
 				$ticketHex = $string['ticketHex'];
 				$stmt->close();
 
-				$sql3 = "UPDATE visitor SET Visitor_Balance = Visitor_Balance + (23 * 1) WHERE visitorID = ?";
+				$sql3 = "UPDATE customer SET balance = balance + (23 * 1) WHERE customerID = ?";
 				$stmt3 = $conn->prepare($sql3);
 				$stmt3->bind_param('i', $id);
 
@@ -727,7 +735,7 @@ if (isset($_GET['cancelticket'])) {
 					$newHex = substr($ticketHex, 0, 10) . substr($ticketHex, 20);
 
 					if (strlen($newHex) > 0) {
-						$sql2 = "UPDATE tickets SET ticketHex=? WHERE visitorID=?";
+						$sql2 = "UPDATE tickets SET ticketHex=? WHERE customerID=?";
 						$stmt2 = $conn->prepare($sql2);
 						$stmt2->bind_param('si', $newHex, $id);
 
@@ -744,7 +752,7 @@ if (isset($_GET['cancelticket'])) {
 					}
 					else {
 
-						$sql4 = "DELETE FROM tickets WHERE visitorID = ?";
+						$sql4 = "DELETE FROM tickets WHERE customerID = ?";
 						$stmt4 = $conn->prepare($sql4);
 						$stmt4->bind_param('i', $id);
 
@@ -778,7 +786,7 @@ if (isset($_GET['cancelticket'])) {
 
 			$id = $_SESSION['id'];
 
-			$sql = "SELECT ticketHex FROM tickets WHERE visitorID=? LIMIT 1";
+			$sql = "SELECT ticketHex FROM tickets WHERE customerID=? LIMIT 1";
 			$stmt = $conn->prepare($sql);
 			$stmt->bind_param('i', $id);
 			
@@ -788,7 +796,7 @@ if (isset($_GET['cancelticket'])) {
 				$ticketHex = $string['ticketHex'];
 				$stmt->close();
 
-				$sql3 = "UPDATE visitor SET Visitor_Balance = Visitor_Balance + (23 * 1) WHERE visitorID = ?";
+				$sql3 = "UPDATE customer SET balance = balance + (23 * 1) WHERE customerID = ?";
 				$stmt3 = $conn->prepare($sql3);
 				$stmt3->bind_param('i', $id);
 
@@ -797,7 +805,7 @@ if (isset($_GET['cancelticket'])) {
 					$newHex = substr($ticketHex, 0, 20) . substr($ticketHex, 30);
 
 					if (strlen($newHex) > 0) {
-						$sql2 = "UPDATE tickets SET ticketHex=? WHERE visitorID=?";
+						$sql2 = "UPDATE tickets SET ticketHex=? WHERE customerID=?";
 						$stmt2 = $conn->prepare($sql2);
 						$stmt2->bind_param('si', $newHex, $id);
 
@@ -814,7 +822,7 @@ if (isset($_GET['cancelticket'])) {
 					}
 					else {
 
-						$sql4 = "DELETE FROM tickets WHERE visitorID = ?";
+						$sql4 = "DELETE FROM tickets WHERE customerID = ?";
 						$stmt4 = $conn->prepare($sql4);
 						$stmt4->bind_param('i', $id);
 
@@ -848,7 +856,7 @@ if (isset($_GET['cancelticket'])) {
 
 			$id = $_SESSION['id'];
 
-			$sql = "SELECT ticketHex FROM tickets WHERE visitorID=? LIMIT 1";
+			$sql = "SELECT ticketHex FROM tickets WHERE customerID=? LIMIT 1";
 			$stmt = $conn->prepare($sql);
 			$stmt->bind_param('i', $id);
 			
@@ -858,7 +866,7 @@ if (isset($_GET['cancelticket'])) {
 				$ticketHex = $string['ticketHex'];
 				$stmt->close();
 
-				$sql3 = "UPDATE visitor SET Visitor_Balance = Visitor_Balance + (23 * 1) WHERE visitorID = ?";
+				$sql3 = "UPDATE customer SET balance = balance + (23 * 1) WHERE customerID = ?";
 				$stmt3 = $conn->prepare($sql3);
 				$stmt3->bind_param('i', $id);
 
@@ -867,7 +875,7 @@ if (isset($_GET['cancelticket'])) {
 					$newHex = substr($ticketHex, 0, 30) . substr($ticketHex, 40);
 
 					if (strlen($newHex) > 0) {
-						$sql2 = "UPDATE tickets SET ticketHex=? WHERE visitorID=?";
+						$sql2 = "UPDATE tickets SET ticketHex=? WHERE customerID=?";
 						$stmt2 = $conn->prepare($sql2);
 						$stmt2->bind_param('si', $newHex, $id);
 
@@ -884,7 +892,7 @@ if (isset($_GET['cancelticket'])) {
 					}
 					else {
 
-						$sql4 = "DELETE FROM tickets WHERE visitorID = ?";
+						$sql4 = "DELETE FROM tickets WHERE customerID = ?";
 						$stmt4 = $conn->prepare($sql4);
 						$stmt4->bind_param('i', $id);
 
@@ -918,7 +926,7 @@ if (isset($_GET['cancelticket'])) {
 
 			$id = $_SESSION['id'];
 
-			$sql = "SELECT ticketHex FROM tickets WHERE visitorID=? LIMIT 1";
+			$sql = "SELECT ticketHex FROM tickets WHERE customerID=? LIMIT 1";
 			$stmt = $conn->prepare($sql);
 			$stmt->bind_param('i', $id);
 			
@@ -928,7 +936,7 @@ if (isset($_GET['cancelticket'])) {
 				$ticketHex = $string['ticketHex'];
 				$stmt->close();
 
-				$sql3 = "UPDATE visitor SET Visitor_Balance = Visitor_Balance + (23 * 1) WHERE visitorID = ?";
+				$sql3 = "UPDATE customer SET balance = balance + (23 * 1) WHERE customerID = ?";
 				$stmt3 = $conn->prepare($sql3);
 				$stmt3->bind_param('i', $id);
 
@@ -937,7 +945,7 @@ if (isset($_GET['cancelticket'])) {
 					$newHex = substr($ticketHex, 0, 40);
 
 					if (strlen($newHex) > 0) {
-						$sql2 = "UPDATE tickets SET ticketHex=? WHERE visitorID=?";
+						$sql2 = "UPDATE tickets SET ticketHex=? WHERE customerID=?";
 						$stmt2 = $conn->prepare($sql2);
 						$stmt2->bind_param('si', $newHex, $id);
 
@@ -954,7 +962,7 @@ if (isset($_GET['cancelticket'])) {
 					}
 					else {
 
-						$sql4 = "DELETE FROM tickets WHERE visitorID = ?";
+						$sql4 = "DELETE FROM tickets WHERE customerID = ?";
 						$stmt4 = $conn->prepare($sql4);
 						$stmt4->bind_param('i', $id);
 

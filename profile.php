@@ -75,7 +75,9 @@ if (!isset($_SESSION['id'])) {
 		// echo $_SESSION['reservation'];
 	} ?>,</h1>
 	<h1>this is your profile page.</h1>
+<!-- 	<a href="profile.php?sendemail=1" class="btn btn-block3">Email</a>
 	<br>
+	<br> -->
 	<a href="profile.php?logout=1" class="btn btn-block3">Log Out</a>
 	<br>
 	<hr>
@@ -83,7 +85,7 @@ if (!isset($_SESSION['id'])) {
 	<br>
 
 	<?php
-		$sql = "SELECT ticketHex FROM tickets WHERE visitorID=? LIMIT 1";
+		$sql = "SELECT ticketHex FROM tickets WHERE customerID=? LIMIT 1";
 		$stmt = $conn->prepare($sql);
 		$stmt->bind_param('i', $_SESSION['id']);
 		$stmt->execute();
