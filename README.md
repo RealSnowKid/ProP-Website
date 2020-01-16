@@ -5,6 +5,9 @@
 ##### Live website version available over at: http://i403318.hera.fhict.nl.
 ![Website Preview Jan 2020](https://git.fhict.nl/I403318/propwebsite/raw/master/Website_Pic.png "Website Peview")
 
+# TECHNOLOGIES
+##### We have used PHP, MYSQL and CSS, vanilla.
+
 # TEAM
 * [John Nguyên](https://git.fhict.nl/I390706) - *TEAM LEADER*
 * [Pavel Dimitrov](https://git.fhict.nl/I406102) - *TEAM SECRETARY*
@@ -15,8 +18,5 @@ We have store all our documentation over at [OneDrive](https://stichtingfontys-m
 
 ### TEAM LOGO
 ![Logo](https://git.fhict.nl/I403318/propwebsite/raw/master/JIP_logo.png "Out Logo")
-
-# TECHNOLOGIES
-##### We have used PHP, MYSQL and CSS, vanilla.
 
 # FOOTNOTES
