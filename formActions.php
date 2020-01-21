@@ -3,7 +3,7 @@
 session_start();
 
 require 'db.php';
-require_once 'emailer.php';
+// require_once 'emailer.php';
 
 // Array for errors and storing email in case of mistake by user
 $reg_errors = array();
@@ -15,7 +15,8 @@ $log_email = "";
 
 // TEST EMAIL
 // if (isset($_GET['sendemail'])) {
-// 	mail('prop2020mail@gmail.com', 'TEST', 'LMAO REKT.');
+// 	// mail('prop2020mail@gmail.com', 'TEST', 'LMAO REKT.');
+// 	sendEmail('playpaladinsstrike@gmail.com');
 // }
 
 // REGISTER
@@ -158,7 +159,7 @@ if (isset($_POST['register-btn2'])){
 			$user_id = $conn->insert_id;
 			$stmt->close();
 			//Enter data into customer table
-			$sql = "INSERT INTO customer (customerID) VALUES (?)";
+			$sql = "INSERT INTO customer (customerID) VALUES ($user_id)";
 			$stmt = $conn->prepare($sql);
 			$stmt->bind_param('i', $user_id);
 			if ($stmt->execute()) {
@@ -238,7 +239,7 @@ if (isset($_POST['login-btn'])){
 				unset($_SESSION['tickets']);
 			}
 
-			$query = "SELECT Accommodation_ID, Account_ID FROM accommodation WHERE Account_ID = '".$id."' LIMIT 1";
+			$query = "SELECT Accommodation_ID, customerID FROM accommodation WHERE customerID = '".$id."' LIMIT 1";
 
 			if ($result2 = $conn->query($query)) {
 
@@ -316,7 +317,7 @@ if (isset($_POST['login-btn2'])){
 				unset($_SESSION['tickets']);
 			}
 
-			$query = "SELECT Accommodation_ID, Account_ID FROM accommodation WHERE Account_ID = '".$id."' LIMIT 1";
+			$query = "SELECT Accommodation_ID, customerID FROM accommodation WHERE customerID = '".$id."' LIMIT 1";
 
 			if ($result2 = $conn->query($query)) {
 
@@ -364,27 +365,29 @@ if (isset($_POST['ticketamount'])) {
 
             $hex = bin2hex(random_bytes(5));
             $id = $_SESSION['id'];
+            $email = $_SESSION['email'];
 
-
-
-    		$sql = "INSERT INTO tickets (customerID, ticketHex) VALUES (?, ?)";
+    		$sql = "UPDATE customer SET email=?, balance= -23, ticketHex=? WHERE customerID=?";
 			$stmt = $conn->prepare($sql);
-			$stmt->bind_param('is', $id, $hex);
+			$stmt->bind_param('ssi', $email, $hex, $id);
 
 			if ($stmt->execute()) {
 
-				$sql2 = "UPDATE customer SET balance = 23 * (-1) WHERE customerID = ?";
-				
-				$stmt2 = $conn->prepare($sql2);
-				$stmt2->bind_param('i', $id);
+				$_SESSION['tickets'] = 1;
+				echo "<script type='text/javascript'>
+				    window.alert('Tickets Reserved!');
+    			   	window.location.replace(\"profile.php\");						
+			    	</script>";
+				exit();
 
-				if (!$stmt2->execute()) {
+			}
+			else{
 
-					$sql3 = "DELETE FROM tickets WHERE customerID = ?";
-					$stmt3 = $conn->prepare($sql3);
-					$stmt3->bind_param('i', $id);
+					$sql2 = "UPDATE customer SET email = NULL, balance = 0, ticketHex = NULL WHERE customerID=?";
+					$stmt2 = $conn->prepare($sql2);
+					$stmt2->bind_param('i', $id);
 
-					if (!$stmt3->execute()) {
+					if (!$stmt2->execute()) {
 						$ticket_errors['error'] = "There is a big error. Please, contact someone!";
 						echo "<script type='text/javascript'> 
 						localStorage.setItem('openModal', '#tickets3'); 
@@ -396,49 +399,41 @@ if (isset($_POST['ticketamount'])) {
 						localStorage.setItem('openModal', '#tickets3'); 
 						</script>";
 					}
-
-				}
-				else{
-					$_SESSION['tickets'] = 1;
-					echo "<script type='text/javascript'>
-				    window.alert('Tickets Reserved!');
-    			   	window.location.replace(\"profile.php\");
-				    </script>";
-					exit();
-				}
-			}
-			else{
-				$ticket_errors['error'] = "There was an error processing your tickets.";
-				echo "<script type='text/javascript'> 
-				localStorage.setItem('openModal', '#tickets3'); 
-				</script>";
 			}
 
             break;
         case '2':
 
-            $hex = bin2hex(random_bytes(10));
+            $hex = bin2hex(random_bytes(5));
+            $hex2 = bin2hex(random_bytes(5));
             $id = $_SESSION['id'];
+            $email = $_SESSION['email'];
 
-
-    		$sql = "INSERT INTO tickets (customerID, ticketHex) VALUES (?, ?)";
+    		$sql = "UPDATE customer SET email=?, balance= -23, ticketHex=? WHERE customerID=?";
 			$stmt = $conn->prepare($sql);
-			$stmt->bind_param('is', $id, $hex);
+			$stmt->bind_param('ssi', $email, $hex, $id);
 
 			if ($stmt->execute()) {
 
-				$sql2 = "UPDATE customer SET balance = 23 * (-2) WHERE customerID = ?";
-				
-				$stmt2 = $conn->prepare($sql2);
-				$stmt2->bind_param('i', $id);
+				$sql3 = "INSERT INTO customer (email, balance, ticketHex) VALUES (?, -23, ?)";
+				$stmt3 = $conn->prepare($sql3);
+				$stmt3->bind_param('ss', $email, $hex2);
 
-				if (!$stmt2->execute()) {
+				if ($stmt3->execute()) {
 
-					$sql3 = "DELETE FROM tickets WHERE customerID = ?";
-					$stmt3 = $conn->prepare($sql3);
-					$stmt3->bind_param('i', $id);
+					$_SESSION['tickets'] = 1;
+					echo "<script type='text/javascript'>
+				    window.alert('Tickets Reserved!');
+    			   	window.location.replace(\"profile.php\");						
+			    	</script>";
+					exit();				
+				}
+				else {
+					$sql2 = "UPDATE customer SET email = NULL, balance = 0, ticketHex = NULL WHERE customerID=?";
+					$stmt2 = $conn->prepare($sql2);
+					$stmt2->bind_param('i', $id);
 
-					if (!$stmt3->execute()) {
+					if (!$stmt2->execute()) {
 						$ticket_errors['error'] = "There is a big error. Please, contact someone!";
 						echo "<script type='text/javascript'> 
 						localStorage.setItem('openModal', '#tickets3'); 
@@ -450,48 +445,63 @@ if (isset($_POST['ticketamount'])) {
 						localStorage.setItem('openModal', '#tickets3'); 
 						</script>";
 					}
+				}
 
-				}
-				else{
-					$_SESSION['tickets'] = 1;
-					echo "<script type='text/javascript'>
-				    window.alert('Tickets Reserved!');
-    			   	window.location.replace(\"profile.php\");
-				    </script>";
-					exit();
-				}
 			}
 			else{
-				$ticket_errors['error'] = "There was an error processing your tickets.";
-				echo "<script type='text/javascript'> 
-				localStorage.setItem('openModal', '#tickets3'); 
-				</script>";
+
+					$sql2 = "UPDATE customer SET email = NULL, balance = 0, ticketHex = NULL WHERE customerID=?";
+					$stmt2 = $conn->prepare($sql2);
+					$stmt2->bind_param('i', $id);
+
+					if (!$stmt2->execute()) {
+						$ticket_errors['error'] = "There is a big error. Please, contact someone!";
+						echo "<script type='text/javascript'> 
+						localStorage.setItem('openModal', '#tickets3'); 
+						</script>";
+					}
+					else{
+						$ticket_errors['error'] = "There was an error processing your tickets.";
+						echo "<script type='text/javascript'> 
+						localStorage.setItem('openModal', '#tickets3'); 
+						</script>";
+					}
 			}
 
             break;
         case '3':
 
-            $hex = bin2hex(random_bytes(15));
+            $hex = bin2hex(random_bytes(5));
+            $hex2 = bin2hex(random_bytes(5));
+            $hex3 = bin2hex(random_bytes(5));
             $id = $_SESSION['id'];
+            $email = $_SESSION['email'];
 
-
-    		$sql = "INSERT INTO tickets (customerID, ticketHex) VALUES (?, ?)";
+    		$sql = "UPDATE customer SET email=?, balance= -23, ticketHex=? WHERE customerID=?";
 			$stmt = $conn->prepare($sql);
-			$stmt->bind_param('is', $id, $hex);
+			$stmt->bind_param('ssi', $email, $hex, $id);
 
 			if ($stmt->execute()) {
-				$sql2 = "UPDATE customer SET balance = 23 * (-3) WHERE customerID = ?";
-				
-				$stmt2 = $conn->prepare($sql2);
-				$stmt2->bind_param('i', $id);
 
-				if (!$stmt2->execute()) {
+				$sql3 = "INSERT INTO customer (email, balance, ticketHex) VALUES (?, -23, ?), (?, -23, ?)";
+				$stmt3 = $conn->prepare($sql3);
+				$stmt3->bind_param('ssss', $email, $hex2, $email, $hex3);
 
-					$sql3 = "DELETE FROM tickets WHERE customerID = ?";
-					$stmt3 = $conn->prepare($sql3);
-					$stmt3->bind_param('i', $id);
+				if ($stmt3->execute()) {
 
-					if (!$stmt3->execute()) {
+					$_SESSION['tickets'] = 1;
+					echo "<script type='text/javascript'>
+				    window.alert('Tickets Reserved!');
+    			   	window.location.replace(\"profile.php\");						
+			    	</script>";
+					exit();				
+				}
+				else {
+					$sql2 = "UPDATE customer SET email = NULL, balance = 0, ticketHex = NULL WHERE customerID=?";
+					$stmt2 = $conn->prepare($sql2);
+					$stmt2->bind_param('i', $id);
+
+					if (!$stmt2->execute()) {
 						$ticket_errors['error'] = "There is a big error. Please, contact someone!";
 						echo "<script type='text/javascript'> 
 						localStorage.setItem('openModal', '#tickets3'); 
@@ -503,48 +513,64 @@ if (isset($_POST['ticketamount'])) {
 						localStorage.setItem('openModal', '#tickets3'); 
 						</script>";
 					}
+				}
 
-				}
-				else{
-					$_SESSION['tickets'] = 1;
-					echo "<script type='text/javascript'>
-				    window.alert('Tickets Reserved!');
-    			   	window.location.replace(\"profile.php\");
-				    </script>";
-					exit();
-				}
 			}
 			else{
-				$ticket_errors['error'] = "There was an error processing your tickets.";
-				echo "<script type='text/javascript'> 
-				localStorage.setItem('openModal', '#tickets3'); 
-				</script>";
+
+					$sql2 = "UPDATE customer SET email = NULL, balance = 0, ticketHex = NULL WHERE customerID=?";
+					$stmt2 = $conn->prepare($sql2);
+					$stmt2->bind_param('i', $id);
+
+					if (!$stmt2->execute()) {
+						$ticket_errors['error'] = "There is a big error. Please, contact someone!";
+						echo "<script type='text/javascript'> 
+						localStorage.setItem('openModal', '#tickets3'); 
+						</script>";
+					}
+					else{
+						$ticket_errors['error'] = "There was an error processing your tickets.";
+						echo "<script type='text/javascript'> 
+						localStorage.setItem('openModal', '#tickets3'); 
+						</script>";
+					}
 			}
 
             break;
         case '4':
 
-            $hex = bin2hex(random_bytes(20));
+            $hex = bin2hex(random_bytes(5));
+            $hex2 = bin2hex(random_bytes(5));
+            $hex3 = bin2hex(random_bytes(5));
+            $hex4 = bin2hex(random_bytes(5));
             $id = $_SESSION['id'];
+            $email = $_SESSION['email'];
 
-
-    		$sql = "INSERT INTO tickets (customerID, ticketHex) VALUES (?, ?)";
+    		$sql = "UPDATE customer SET email=?, balance= -23, ticketHex=? WHERE customerID=?";
 			$stmt = $conn->prepare($sql);
-			$stmt->bind_param('is', $id, $hex);
+			$stmt->bind_param('ssi', $email, $hex, $id);
 
 			if ($stmt->execute()) {
-				$sql2 = "UPDATE customer SET balance = 23 * (-4) WHERE customerID = ?";
-				
-				$stmt2 = $conn->prepare($sql2);
-				$stmt2->bind_param('i', $id);
 
-				if (!$stmt2->execute()) {
+				$sql3 = "INSERT INTO customer (email, balance, ticketHex) VALUES (?, -23, ?), (?, -23, ?), (?, -23, ?)";
+				$stmt3 = $conn->prepare($sql3);
+				$stmt3->bind_param('ssssss', $email, $hex2, $email, $hex3, $email, $hex4);
 
-					$sql3 = "DELETE FROM tickets WHERE customerID = ?";
-					$stmt3 = $conn->prepare($sql3);
-					$stmt3->bind_param('i', $id);
+				if ($stmt3->execute()) {
 
-					if (!$stmt3->execute()) {
+					$_SESSION['tickets'] = 1;
+					echo "<script type='text/javascript'>
+				    window.alert('Tickets Reserved!');
+    			   	window.location.replace(\"profile.php\");						
+			    	</script>";
+					exit();				
+				}
+				else {
+					$sql2 = "UPDATE customer SET email = NULL, balance = 0, ticketHex = NULL WHERE customerID=?";
+					$stmt2 = $conn->prepare($sql2);
+					$stmt2->bind_param('i', $id);
+
+					if (!$stmt2->execute()) {
 						$ticket_errors['error'] = "There is a big error. Please, contact someone!";
 						echo "<script type='text/javascript'> 
 						localStorage.setItem('openModal', '#tickets3'); 
@@ -556,48 +582,88 @@ if (isset($_POST['ticketamount'])) {
 						localStorage.setItem('openModal', '#tickets3'); 
 						</script>";
 					}
+				}
 
-				}
-				else{
-					$_SESSION['tickets'] = 1;
-					echo "<script type='text/javascript'>
-				    window.alert('Tickets Reserved!');
-    			   	window.location.replace(\"profile.php\");
-				    </script>";
-					exit();
-				}
 			}
 			else{
-				$ticket_errors['error'] = "There was an error processing your tickets.";
-				echo "<script type='text/javascript'> 
-				localStorage.setItem('openModal', '#tickets3'); 
-				</script>";
+
+					$sql2 = "UPDATE customer SET email = NULL, balance = 0, ticketHex = NULL WHERE customerID=?";
+					$stmt2 = $conn->prepare($sql2);
+					$stmt2->bind_param('i', $id);
+
+					if (!$stmt2->execute()) {
+						$ticket_errors['error'] = "There is a big error. Please, contact someone!";
+						echo "<script type='text/javascript'> 
+						localStorage.setItem('openModal', '#tickets3'); 
+						</script>";
+					}
+					else{
+						$ticket_errors['error'] = "There was an error processing your tickets.";
+						echo "<script type='text/javascript'> 
+						localStorage.setItem('openModal', '#tickets3'); 
+						</script>";
+					}
 			}
+
 
         	break;
         case '5':
 
-            $hex = bin2hex(random_bytes(25));
+            $hex = bin2hex(random_bytes(5));
+            $hex2 = bin2hex(random_bytes(5));
+            $hex3 = bin2hex(random_bytes(5));
+            $hex4 = bin2hex(random_bytes(5));
+            $hex5 = bin2hex(random_bytes(5));
             $id = $_SESSION['id'];
+            $email = $_SESSION['email'];
 
-
-    		$sql = "INSERT INTO tickets (customerID, ticketHex) VALUES (?, ?)";
+    		$sql = "UPDATE customer SET email=?, balance= -23, ticketHex=? WHERE customerID=?";
 			$stmt = $conn->prepare($sql);
-			$stmt->bind_param('is', $id, $hex);
+			$stmt->bind_param('ssi', $email, $hex, $id);
 
 			if ($stmt->execute()) {
-				$sql2 = "UPDATE customer SET balance = 23 * (-5) WHERE customerID = ?";
-				
-				$stmt2 = $conn->prepare($sql2);
-				$stmt2->bind_param('i', $id);
 
-				if (!$stmt2->execute()) {
+				$sql3 = "INSERT INTO customer (email, balance, ticketHex) VALUES (?, -23, ?), (?, -23, ?), (?, -23, ?), (?, -23, ?)";
+				$stmt3 = $conn->prepare($sql3);
+				$stmt3->bind_param('ssssssss', $email, $hex2, $email, $hex3, $email, $hex4, $email, $hex5);
 
-					$sql3 = "DELETE FROM tickets WHERE customerID = ?";
-					$stmt3 = $conn->prepare($sql3);
-					$stmt3->bind_param('i', $id);
+				if ($stmt3->execute()) {
 
-					if (!$stmt3->execute()) {
+					$_SESSION['tickets'] = 1;
+					echo "<script type='text/javascript'>
+				    window.alert('Tickets Reserved!');
+    			   	window.location.replace(\"profile.php\");						
+			    	</script>";
+					exit();				
+				}
+				else {
+					$sql2 = "UPDATE customer SET email = NULL, balance = 0, ticketHex = NULL WHERE customerID=?";
+					$stmt2 = $conn->prepare($sql2);
+					$stmt2->bind_param('i', $id);
+
+					if (!$stmt2->execute()) {
+						$ticket_errors['error'] = "There is a big error. Please, contact someone!";
+						echo "<script type='text/javascript'> 
+						localStorage.setItem('openModal', '#tickets3'); 
+						</script>";
+					}
+					else{
+						// $ticket_errors['error'] = "There was an error processing your tickets.";
+						$ticket_errors['error'] = $conn->error;
+						echo "<script type='text/javascript'> 
+						localStorage.setItem('openModal', '#tickets3'); 
+						</script>";
+					}
+				}
+
+			}
+			else{
+
+					$sql2 = "UPDATE customer SET email = NULL, balance = 0, ticketHex = NULL WHERE customerID=?";
+					$stmt2 = $conn->prepare($sql2);
+					$stmt2->bind_param('i', $id);
+
+					if (!$stmt2->execute()) {
 						$ticket_errors['error'] = "There is a big error. Please, contact someone!";
 						echo "<script type='text/javascript'> 
 						localStorage.setItem('openModal', '#tickets3'); 
@@ -609,22 +675,6 @@ if (isset($_POST['ticketamount'])) {
 						localStorage.setItem('openModal', '#tickets3'); 
 						</script>";
 					}
-
-				}
-				else{
-					$_SESSION['tickets'] = 1;
-					echo "<script type='text/javascript'>
-				    window.alert('Tickets Reserved!');
-    			   	window.location.replace(\"profile.php\");
-				    </script>";
-					exit();
-				}
-			}
-			else{
-				$ticket_errors['error'] = "There was an error processing your tickets.";
-				echo "<script type='text/javascript'> 
-				localStorage.setItem('openModal', '#tickets3'); 
-				</script>";
 			}
 
         	break;
@@ -639,362 +689,23 @@ if (isset($_POST['ticketamount'])) {
 
 // CANCEL TICKET
 if (isset($_GET['cancelticket'])) {
-	switch ($_GET['cancelticket']) {
-
-		case '1':
-
-			$id = $_SESSION['id'];
-
-			$sql = "SELECT ticketHex FROM tickets WHERE customerID=? LIMIT 1";
-			$stmt = $conn->prepare($sql);
-			$stmt->bind_param('i', $id);
-			
-			if ($stmt->execute()) {
-				$result = $stmt->get_result();
-				$string = $result->fetch_assoc();
-				$ticketHex = $string['ticketHex'];
-				$stmt->close();
-
-				$sql3 = "UPDATE customer SET balance = balance + (23 * 1) WHERE customerID = ?";
-				$stmt3 = $conn->prepare($sql3);
-				$stmt3->bind_param('i', $id);
-
-				if ($stmt3->execute()) {
-					$stmt3->close();
-					$newHex = substr($ticketHex, 10);
-
-					if (strlen($newHex) > 0) {
-						$sql2 = "UPDATE tickets SET ticketHex=? WHERE customerID=?";
-						$stmt2 = $conn->prepare($sql2);
-						$stmt2->bind_param('si', $newHex, $id);
-
-						if ($stmt2->execute()) {
-							$stmt2->close();
-							echo "<script type='text/javascript'>
-						    window.alert('Ticket Cancelled!');
-		    			   	window.location.replace(\"profile.php\");
-						    </script>";
-						}
-						else {
-							echo "error: " . $stmt2->error;					
-						}
-					}
-					else {
-
-						$sql4 = "DELETE FROM tickets WHERE customerID = ?";
-						$stmt4 = $conn->prepare($sql4);
-						$stmt4->bind_param('i', $id);
-
-						if ($stmt4->execute()) {
-							unset($_SESSION['tickets']);
-							echo "<script type='text/javascript'>
-						    window.alert('Ticket Cancelled!');
-		    			   	window.location.replace(\"profile.php\");
-						    </script>";
-						}
-
-						else{
-							echo "error: " . $stmt4->error;
-						}
-
-					}
-
-				}
-				else {
-					echo "error: " . $stmt3->error;
-				}
-	
-			}
-			else {
-				echo "error: " . $stmt->error;
-			}
-
-
-			break;
-
-		case '2':
-
-			$id = $_SESSION['id'];
-
-			$sql = "SELECT ticketHex FROM tickets WHERE customerID=? LIMIT 1";
-			$stmt = $conn->prepare($sql);
-			$stmt->bind_param('i', $id);
-			
-			if ($stmt->execute()) {
-				$result = $stmt->get_result();
-				$string = $result->fetch_assoc();
-				$ticketHex = $string['ticketHex'];
-				$stmt->close();
-
-				$sql3 = "UPDATE customer SET balance = balance + (23 * 1) WHERE customerID = ?";
-				$stmt3 = $conn->prepare($sql3);
-				$stmt3->bind_param('i', $id);
-
-				if ($stmt3->execute()) {
-					$stmt3->close();
-					$newHex = substr($ticketHex, 0, 10) . substr($ticketHex, 20);
-
-					if (strlen($newHex) > 0) {
-						$sql2 = "UPDATE tickets SET ticketHex=? WHERE customerID=?";
-						$stmt2 = $conn->prepare($sql2);
-						$stmt2->bind_param('si', $newHex, $id);
-
-						if ($stmt2->execute()) {
-							$stmt2->close();
-							echo "<script type='text/javascript'>
-						    window.alert('Ticket Cancelled!');
-		    			   	window.location.replace(\"profile.php\");
-						    </script>";
-						}
-						else {
-							echo "error: " . $stmt2->error;					
-						}
-					}
-					else {
-
-						$sql4 = "DELETE FROM tickets WHERE customerID = ?";
-						$stmt4 = $conn->prepare($sql4);
-						$stmt4->bind_param('i', $id);
-
-						if ($stmt4->execute()) {
-							unset($_SESSION['tickets']);
-							echo "<script type='text/javascript'>
-						    window.alert('Ticket Cancelled!');
-		    			   	window.location.replace(\"profile.php\");
-						    </script>";
-						}
-
-						else{
-							echo "error: " . $stmt4->error;
-						}
-
-					}
-
-				}
-				else {
-					echo "error: " . $stmt3->error;
-				}
-	
-			}
-			else {
-				echo "error: " . $stmt->error;
-			}
-
-			break;
-
-		case '3':
-
-			$id = $_SESSION['id'];
-
-			$sql = "SELECT ticketHex FROM tickets WHERE customerID=? LIMIT 1";
-			$stmt = $conn->prepare($sql);
-			$stmt->bind_param('i', $id);
-			
-			if ($stmt->execute()) {
-				$result = $stmt->get_result();
-				$string = $result->fetch_assoc();
-				$ticketHex = $string['ticketHex'];
-				$stmt->close();
-
-				$sql3 = "UPDATE customer SET balance = balance + (23 * 1) WHERE customerID = ?";
-				$stmt3 = $conn->prepare($sql3);
-				$stmt3->bind_param('i', $id);
-
-				if ($stmt3->execute()) {
-					$stmt3->close();
-					$newHex = substr($ticketHex, 0, 20) . substr($ticketHex, 30);
-
-					if (strlen($newHex) > 0) {
-						$sql2 = "UPDATE tickets SET ticketHex=? WHERE customerID=?";
-						$stmt2 = $conn->prepare($sql2);
-						$stmt2->bind_param('si', $newHex, $id);
-
-						if ($stmt2->execute()) {
-							$stmt2->close();
-							echo "<script type='text/javascript'>
-						    window.alert('Ticket Cancelled!');
-		    			   	window.location.replace(\"profile.php\");
-						    </script>";
-						}
-						else {
-							echo "error: " . $stmt2->error;					
-						}
-					}
-					else {
-
-						$sql4 = "DELETE FROM tickets WHERE customerID = ?";
-						$stmt4 = $conn->prepare($sql4);
-						$stmt4->bind_param('i', $id);
-
-						if ($stmt4->execute()) {
-							unset($_SESSION['tickets']);
-							echo "<script type='text/javascript'>
-						    window.alert('Ticket Cancelled!');
-		    			   	window.location.replace(\"profile.php\");
-						    </script>";
-						}
-
-						else{
-							echo "error: " . $stmt4->error;
-						}
-
-					}
-
-				}
-				else {
-					echo "error: " . $stmt3->error;
-				}
-	
-			}
-			else {
-				echo "error: " . $stmt->error;
-			}
-
-			break;
-
-		case '4':
-
-			$id = $_SESSION['id'];
-
-			$sql = "SELECT ticketHex FROM tickets WHERE customerID=? LIMIT 1";
-			$stmt = $conn->prepare($sql);
-			$stmt->bind_param('i', $id);
-			
-			if ($stmt->execute()) {
-				$result = $stmt->get_result();
-				$string = $result->fetch_assoc();
-				$ticketHex = $string['ticketHex'];
-				$stmt->close();
-
-				$sql3 = "UPDATE customer SET balance = balance + (23 * 1) WHERE customerID = ?";
-				$stmt3 = $conn->prepare($sql3);
-				$stmt3->bind_param('i', $id);
-
-				if ($stmt3->execute()) {
-					$stmt3->close();
-					$newHex = substr($ticketHex, 0, 30) . substr($ticketHex, 40);
-
-					if (strlen($newHex) > 0) {
-						$sql2 = "UPDATE tickets SET ticketHex=? WHERE customerID=?";
-						$stmt2 = $conn->prepare($sql2);
-						$stmt2->bind_param('si', $newHex, $id);
-
-						if ($stmt2->execute()) {
-							$stmt2->close();
-							echo "<script type='text/javascript'>
-						    window.alert('Ticket Cancelled!');
-		    			   	window.location.replace(\"profile.php\");
-						    </script>";
-						}
-						else {
-							echo "error: " . $stmt2->error;					
-						}
-					}
-					else {
-
-						$sql4 = "DELETE FROM tickets WHERE customerID = ?";
-						$stmt4 = $conn->prepare($sql4);
-						$stmt4->bind_param('i', $id);
-
-						if ($stmt4->execute()) {
-							unset($_SESSION['tickets']);
-							echo "<script type='text/javascript'>
-						    window.alert('Ticket Cancelled!');
-		    			   	window.location.replace(\"profile.php\");
-						    </script>";
-						}
-
-						else{
-							echo "error: " . $stmt4->error;
-						}
-
-					}
-
-				}
-				else {
-					echo "error: " . $stmt3->error;
-				}
-	
-			}
-			else {
-				echo "error: " . $stmt->error;
-			}
-
-			break;
-
-		case '5':
-
-			$id = $_SESSION['id'];
-
-			$sql = "SELECT ticketHex FROM tickets WHERE customerID=? LIMIT 1";
-			$stmt = $conn->prepare($sql);
-			$stmt->bind_param('i', $id);
-			
-			if ($stmt->execute()) {
-				$result = $stmt->get_result();
-				$string = $result->fetch_assoc();
-				$ticketHex = $string['ticketHex'];
-				$stmt->close();
-
-				$sql3 = "UPDATE customer SET balance = balance + (23 * 1) WHERE customerID = ?";
-				$stmt3 = $conn->prepare($sql3);
-				$stmt3->bind_param('i', $id);
-
-				if ($stmt3->execute()) {
-					$stmt3->close();
-					$newHex = substr($ticketHex, 0, 40);
-
-					if (strlen($newHex) > 0) {
-						$sql2 = "UPDATE tickets SET ticketHex=? WHERE customerID=?";
-						$stmt2 = $conn->prepare($sql2);
-						$stmt2->bind_param('si', $newHex, $id);
-
-						if ($stmt2->execute()) {
-							$stmt2->close();
-							echo "<script type='text/javascript'>
-						    window.alert('Ticket Cancelled!');
-		    			   	window.location.replace(\"profile.php\");
-						    </script>";
-						}
-						else {
-							echo "error: " . $stmt2->error;					
-						}
-					}
-					else {
-
-						$sql4 = "DELETE FROM tickets WHERE customerID = ?";
-						$stmt4 = $conn->prepare($sql4);
-						$stmt4->bind_param('i', $id);
-
-						if ($stmt4->execute()) {
-							unset($_SESSION['tickets']);
-							echo "<script type='text/javascript'>
-						    window.alert('Ticket Cancelled!');
-		    			   	window.location.replace(\"profile.php\");
-						    </script>";
-						}
-
-						else{
-							echo "error: " . $stmt4->error;
-						}
-
-					}
-
-				}
-				else {
-					echo "error: " . $stmt3->error;
-				}
-	
-			}
-			else {
-				echo "error: " . $stmt->error;
-			}
-
-			break;
-
-        default:
-        	echo "hello?!?!?";
-        		break;
+	$ticketHex = $_GET['cancelticket'];
+	$email = $_SESSION['email'];
+
+
+	$sql = "UPDATE customer SET email=NULL, balance=0, ticketHex=NULL WHERE ticketHex=?";
+	$stmt = $conn->prepare($sql);
+	$stmt->bind_param('s', $ticketHex);
+
+	if ($stmt->execute()) {
+		$stmt->close();
+		echo "<script type='text/javascript'>
+	    window.alert('Ticket Cancelled!');
+	   	window.location.replace(\"profile.php\");
+	    </script>";
+	}
+	else {
+		echo "error: " . $stmt->error;	
 	}
 }
 
@@ -1007,7 +718,7 @@ if (isset($_POST['accommodation'])) {
 			function fetchAccom(mysqli $conn){
 				$data = [];
 
-				$sql = "SELECT Accommodation_ID FROM accommodation WHERE Accommodation_Max_People = 2 AND Account_ID IS NULL AND Accommodation_Status = 0";
+				$sql = "SELECT Accommodation_ID FROM accommodation WHERE Accommodation_Max_People = 2 AND customerEmail IS NULL AND Accommodation_Status = 0";
 
 				$results = $conn->query($sql);
 
@@ -1025,7 +736,7 @@ if (isset($_POST['accommodation'])) {
 			function fetchAccom(mysqli $conn){
 				$data = [];
 
-				$sql = "SELECT Accommodation_ID FROM accommodation WHERE Accommodation_Max_People = 3 AND Account_ID IS NULL AND Accommodation_Status = 0";
+				$sql = "SELECT Accommodation_ID FROM accommodation WHERE Accommodation_Max_People = 3 AND customerEmail IS NULL AND Accommodation_Status = 0";
 
 				$results = $conn->query($sql);
 
@@ -1042,7 +753,7 @@ if (isset($_POST['accommodation'])) {
 			function fetchAccom(mysqli $conn){
 				$data = [];
 
-				$sql = "SELECT Accommodation_ID FROM accommodation WHERE Accommodation_Max_People = 4 AND Account_ID IS NULL AND Accommodation_Status = 0";
+				$sql = "SELECT Accommodation_ID FROM accommodation WHERE Accommodation_Max_People = 4 AND customerEmail IS NULL AND Accommodation_Status = 0";
 
 				$results = $conn->query($sql);
 
@@ -1059,7 +770,7 @@ if (isset($_POST['accommodation'])) {
 			function fetchAccom(mysqli $conn){
 				$data = [];
 
-				$sql = "SELECT Accommodation_ID FROM accommodation WHERE Accommodation_Max_People = 5 AND Account_ID IS NULL AND Accommodation_Status = 0";
+				$sql = "SELECT Accommodation_ID FROM accommodation WHERE Accommodation_Max_People = 5 AND customerEmail IS NULL AND Accommodation_Status = 0";
 
 				$results = $conn->query($sql);
 
@@ -1089,9 +800,9 @@ if (isset($_GET['reserve'])) {
 
 		case '1':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query1 = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '1' AND Account_ID IS NOT NULL ";
+			$query1 = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '1' AND customerEmail IS NOT NULL ";
 			$result1 = $conn->query($query1);
 			$row_cnt = $result1->num_rows;
 
@@ -1102,9 +813,9 @@ if (isset($_GET['reserve'])) {
 				    </script>";
 			}
 			else{
-				$query = "UPDATE accommodation SET Account_ID = ? WHERE Accommodation_ID = '1'";
+				$query = "UPDATE accommodation SET customerEmail = ? WHERE Accommodation_ID = '1'";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					$_SESSION['reservation'] = 1;
@@ -1125,9 +836,9 @@ if (isset($_GET['reserve'])) {
 
 		case '2':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query1 = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '2' AND Account_ID IS NOT NULL ";
+			$query1 = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '2' AND customerEmail IS NOT NULL ";
 			$result1 = $conn->query($query1);
 			$row_cnt = $result1->num_rows;
 
@@ -1138,9 +849,9 @@ if (isset($_GET['reserve'])) {
 				    </script>";
 			}
 			else{
-				$query = "UPDATE accommodation SET Account_ID = ? WHERE Accommodation_ID = '2'";
+				$query = "UPDATE accommodation SET customerEmail = ? WHERE Accommodation_ID = '2'";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					$_SESSION['reservation'] = 2;
@@ -1161,9 +872,9 @@ if (isset($_GET['reserve'])) {
 
 		case '3':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query1 = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '3' AND Account_ID IS NOT NULL ";
+			$query1 = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '3' AND customerEmail IS NOT NULL ";
 			$result1 = $conn->query($query1);
 			$row_cnt = $result1->num_rows;
 
@@ -1174,9 +885,9 @@ if (isset($_GET['reserve'])) {
 				    </script>";
 			}
 			else{
-				$query = "UPDATE accommodation SET Account_ID = ? WHERE Accommodation_ID = '3'";
+				$query = "UPDATE accommodation SET customerEmail = ? WHERE Accommodation_ID = '3'";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					$_SESSION['reservation'] = 3;
@@ -1197,9 +908,9 @@ if (isset($_GET['reserve'])) {
 
 		case '4':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query1 = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '4' AND Account_ID IS NOT NULL ";
+			$query1 = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '4' AND customerEmail IS NOT NULL ";
 			$result1 = $conn->query($query1);
 			$row_cnt = $result1->num_rows;
 
@@ -1210,9 +921,9 @@ if (isset($_GET['reserve'])) {
 				    </script>";
 			}
 			else{
-				$query = "UPDATE accommodation SET Account_ID = ? WHERE Accommodation_ID = '4'";
+				$query = "UPDATE accommodation SET customerEmail = ? WHERE Accommodation_ID = '4'";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					$_SESSION['reservation'] = 4;
@@ -1233,9 +944,9 @@ if (isset($_GET['reserve'])) {
 
 		case '5':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query1 = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '5' AND Account_ID IS NOT NULL ";
+			$query1 = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '5' AND customerEmail IS NOT NULL ";
 			$result1 = $conn->query($query1);
 			$row_cnt = $result1->num_rows;
 
@@ -1246,9 +957,9 @@ if (isset($_GET['reserve'])) {
 				    </script>";
 			}
 			else{
-				$query = "UPDATE accommodation SET Account_ID = ? WHERE Accommodation_ID = '5'";
+				$query = "UPDATE accommodation SET customerEmail = ? WHERE Accommodation_ID = '5'";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					$_SESSION['reservation'] = 5;
@@ -1269,9 +980,9 @@ if (isset($_GET['reserve'])) {
 
 		case '6':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query1 = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '6' AND Account_ID IS NOT NULL ";
+			$query1 = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '6' AND customerEmail IS NOT NULL ";
 			$result1 = $conn->query($query1);
 			$row_cnt = $result1->num_rows;
 
@@ -1282,9 +993,9 @@ if (isset($_GET['reserve'])) {
 				    </script>";
 			}
 			else{
-				$query = "UPDATE accommodation SET Account_ID = ? WHERE Accommodation_ID = '6'";
+				$query = "UPDATE accommodation SET customerEmail = ? WHERE Accommodation_ID = '6'";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					$_SESSION['reservation'] = 6;
@@ -1305,9 +1016,9 @@ if (isset($_GET['reserve'])) {
 
 		case '7':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query1 = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '7' AND Account_ID IS NOT NULL ";
+			$query1 = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '7' AND customerEmail IS NOT NULL ";
 			$result1 = $conn->query($query1);
 			$row_cnt = $result1->num_rows;
 
@@ -1318,9 +1029,9 @@ if (isset($_GET['reserve'])) {
 				    </script>";
 			}
 			else{
-				$query = "UPDATE accommodation SET Account_ID = ? WHERE Accommodation_ID = '7'";
+				$query = "UPDATE accommodation SET customerEmail = ? WHERE Accommodation_ID = '7'";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					$_SESSION['reservation'] = 7;
@@ -1341,9 +1052,9 @@ if (isset($_GET['reserve'])) {
 
 		case '8':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query1 = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '8' AND Account_ID IS NOT NULL ";
+			$query1 = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '8' AND customerEmail IS NOT NULL ";
 			$result1 = $conn->query($query1);
 			$row_cnt = $result1->num_rows;
 
@@ -1354,9 +1065,9 @@ if (isset($_GET['reserve'])) {
 				    </script>";
 			}
 			else{
-				$query = "UPDATE accommodation SET Account_ID = ? WHERE Accommodation_ID = '8'";
+				$query = "UPDATE accommodation SET customerEmail = ? WHERE Accommodation_ID = '8'";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					$_SESSION['reservation'] = 8;
@@ -1377,9 +1088,9 @@ if (isset($_GET['reserve'])) {
 
 		case '9':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query1 = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '9' AND Account_ID IS NOT NULL ";
+			$query1 = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '9' AND customerEmail IS NOT NULL ";
 			$result1 = $conn->query($query1);
 			$row_cnt = $result1->num_rows;
 
@@ -1390,9 +1101,9 @@ if (isset($_GET['reserve'])) {
 				    </script>";
 			}
 			else{
-				$query = "UPDATE accommodation SET Account_ID = ? WHERE Accommodation_ID = '9'";
+				$query = "UPDATE accommodation SET customerEmail = ? WHERE Accommodation_ID = '9'";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					$_SESSION['reservation'] = 9;
@@ -1413,9 +1124,9 @@ if (isset($_GET['reserve'])) {
 
 		case '10':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query1 = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '10' AND Account_ID IS NOT NULL ";
+			$query1 = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '10' AND customerEmail IS NOT NULL ";
 			$result1 = $conn->query($query1);
 			$row_cnt = $result1->num_rows;
 
@@ -1426,9 +1137,9 @@ if (isset($_GET['reserve'])) {
 				    </script>";
 			}
 			else{
-				$query = "UPDATE accommodation SET Account_ID = ? WHERE Accommodation_ID = '10'";
+				$query = "UPDATE accommodation SET customerEmail = ? WHERE Accommodation_ID = '10'";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					$_SESSION['reservation'] = 10;
@@ -1449,9 +1160,9 @@ if (isset($_GET['reserve'])) {
 
 		case '11':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query1 = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '11' AND Account_ID IS NOT NULL ";
+			$query1 = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '11' AND customerEmail IS NOT NULL ";
 			$result1 = $conn->query($query1);
 			$row_cnt = $result1->num_rows;
 
@@ -1462,9 +1173,9 @@ if (isset($_GET['reserve'])) {
 				    </script>";
 			}
 			else{
-				$query = "UPDATE accommodation SET Account_ID = ? WHERE Accommodation_ID = '11'";
+				$query = "UPDATE accommodation SET customerEmail = ? WHERE Accommodation_ID = '11'";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					$_SESSION['reservation'] = 11;
@@ -1485,9 +1196,9 @@ if (isset($_GET['reserve'])) {
 
 		case '12':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query1 = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '12' AND Account_ID IS NOT NULL ";
+			$query1 = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '12' AND customerEmail IS NOT NULL ";
 			$result1 = $conn->query($query1);
 			$row_cnt = $result1->num_rows;
 
@@ -1498,9 +1209,9 @@ if (isset($_GET['reserve'])) {
 				    </script>";
 			}
 			else{
-				$query = "UPDATE accommodation SET Account_ID = ? WHERE Accommodation_ID = '12'";
+				$query = "UPDATE accommodation SET customerEmail = ? WHERE Accommodation_ID = '12'";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					$_SESSION['reservation'] = 12;
@@ -1521,9 +1232,9 @@ if (isset($_GET['reserve'])) {
 
 		case '13':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query1 = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '13' AND Account_ID IS NOT NULL ";
+			$query1 = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '13' AND customerEmail IS NOT NULL ";
 			$result1 = $conn->query($query1);
 			$row_cnt = $result1->num_rows;
 
@@ -1534,9 +1245,9 @@ if (isset($_GET['reserve'])) {
 				    </script>";
 			}
 			else{
-				$query = "UPDATE accommodation SET Account_ID = ? WHERE Accommodation_ID = '13'";
+				$query = "UPDATE accommodation SET customerEmail = ? WHERE Accommodation_ID = '13'";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					$_SESSION['reservation'] = 13;
@@ -1557,9 +1268,9 @@ if (isset($_GET['reserve'])) {
 			
 		case '14':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query1 = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '14' AND Account_ID IS NOT NULL ";
+			$query1 = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '14' AND customerEmail IS NOT NULL ";
 			$result1 = $conn->query($query1);
 			$row_cnt = $result1->num_rows;
 
@@ -1570,9 +1281,9 @@ if (isset($_GET['reserve'])) {
 				    </script>";
 			}
 			else{
-				$query = "UPDATE accommodation SET Account_ID = ? WHERE Accommodation_ID = '14'";
+				$query = "UPDATE accommodation SET customerEmail = ? WHERE Accommodation_ID = '14'";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					$_SESSION['reservation'] = 14;
@@ -1604,17 +1315,17 @@ if (isset($_GET['cancelres'])) {
 
 		case '1':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '1' AND Account_ID IS NOT NULL ";
+			$query = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '1' AND customerEmail IS NOT NULL ";
 			$result = $conn->query($query);
 			$row_cnt = $result->num_rows;
 
 			if ($row_cnt > 0) {
 		
-			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '1' AND Account_ID = ?";
+			    $query = "UPDATE accommodation SET customerEmail = NULL WHERE Accommodation_ID = '1' AND customerEmail = ?";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
@@ -1642,17 +1353,17 @@ if (isset($_GET['cancelres'])) {
 
 		case '2':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '2' AND Account_ID IS NOT NULL ";
+			$query = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '2' AND customerEmail IS NOT NULL ";
 			$result = $conn->query($query);
 			$row_cnt = $result->num_rows;
 
 			if ($row_cnt > 0) {
 		
-			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '2' AND Account_ID = ?";
+			    $query = "UPDATE accommodation SET customerEmail = NULL WHERE Accommodation_ID = '2' AND customerEmail = ?";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
@@ -1680,18 +1391,17 @@ if (isset($_GET['cancelres'])) {
 
 		case '3':
 
+			$email = $_SESSION['email'];
 			
-			$id = $_SESSION['id'];
-			
-			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '3' AND Account_ID IS NOT NULL ";
+			$query = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '3' AND customerEmail IS NOT NULL ";
 			$result = $conn->query($query);
 			$row_cnt = $result->num_rows;
 
 			if ($row_cnt > 0) {
 		
-			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '3' AND Account_ID = ?";
+			    $query = "UPDATE accommodation SET customerEmail = NULL WHERE Accommodation_ID = '3' AND customerEmail = ?";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
@@ -1714,23 +1424,22 @@ if (isset($_GET['cancelres'])) {
 					window.location.replace(\"profile.php\");
 				    </script>";		
 			}
-
  
 			break;
 
 		case '4':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '4' AND Account_ID IS NOT NULL ";
+			$query = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '4' AND customerEmail IS NOT NULL ";
 			$result = $conn->query($query);
 			$row_cnt = $result->num_rows;
 
 			if ($row_cnt > 0) {
 		
-			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '4' AND Account_ID = ?";
+			    $query = "UPDATE accommodation SET customerEmail = NULL WHERE Accommodation_ID = '4' AND customerEmail = ?";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
@@ -1753,22 +1462,22 @@ if (isset($_GET['cancelres'])) {
 					window.location.replace(\"profile.php\");
 				    </script>";		
 			}
-
+			
 			break;
 
 		case '5':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '5' AND Account_ID IS NOT NULL ";
+			$query = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '5' AND customerEmail IS NOT NULL ";
 			$result = $conn->query($query);
 			$row_cnt = $result->num_rows;
 
 			if ($row_cnt > 0) {
 		
-			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '5' AND Account_ID = ?";
+			    $query = "UPDATE accommodation SET customerEmail = NULL WHERE Accommodation_ID = '5' AND customerEmail = ?";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
@@ -1796,17 +1505,17 @@ if (isset($_GET['cancelres'])) {
 
 		case '6':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '6' AND Account_ID IS NOT NULL ";
+			$query = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '6' AND customerEmail IS NOT NULL ";
 			$result = $conn->query($query);
 			$row_cnt = $result->num_rows;
 
 			if ($row_cnt > 0) {
 		
-			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '6' AND Account_ID = ?";
+			    $query = "UPDATE accommodation SET customerEmail = NULL WHERE Accommodation_ID = '6' AND customerEmail = ?";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
@@ -1817,7 +1526,7 @@ if (isset($_GET['cancelres'])) {
 				}
 				else {
 					echo "<script type='text/javascript'>
-				    window.alert('Error Canceling the Reservation. Please try again! 2');
+				    window.alert('Error Canceling the Reservation. Please try again!');
 					window.location.replace(\"profile.php\");
 				    </script>";
 				}
@@ -1834,17 +1543,17 @@ if (isset($_GET['cancelres'])) {
 
 		case '7':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '7' AND Account_ID IS NOT NULL ";
+			$query = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '7' AND customerEmail IS NOT NULL ";
 			$result = $conn->query($query);
 			$row_cnt = $result->num_rows;
 
 			if ($row_cnt > 0) {
 		
-			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '7' AND Account_ID = ?";
+			    $query = "UPDATE accommodation SET customerEmail = NULL WHERE Accommodation_ID = '7' AND customerEmail = ?";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
@@ -1867,22 +1576,22 @@ if (isset($_GET['cancelres'])) {
 					window.location.replace(\"profile.php\");
 				    </script>";		
 			}
-
+			
 			break;
 
 		case '8':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '8' AND Account_ID IS NOT NULL ";
+			$query = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '8' AND customerEmail IS NOT NULL ";
 			$result = $conn->query($query);
 			$row_cnt = $result->num_rows;
 
 			if ($row_cnt > 0) {
 		
-			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '8' AND Account_ID = ?";
+			    $query = "UPDATE accommodation SET customerEmail = NULL WHERE Accommodation_ID = '8' AND customerEmail = ?";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
@@ -1905,22 +1614,22 @@ if (isset($_GET['cancelres'])) {
 					window.location.replace(\"profile.php\");
 				    </script>";		
 			}
-
+			
 			break;
 
 		case '9':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '9' AND Account_ID IS NOT NULL ";
+			$query = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '9' AND customerEmail IS NOT NULL ";
 			$result = $conn->query($query);
 			$row_cnt = $result->num_rows;
 
 			if ($row_cnt > 0) {
 		
-			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '9' AND Account_ID = ?";
+			    $query = "UPDATE accommodation SET customerEmail = NULL WHERE Accommodation_ID = '9' AND customerEmail = ?";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
@@ -1943,22 +1652,22 @@ if (isset($_GET['cancelres'])) {
 					window.location.replace(\"profile.php\");
 				    </script>";		
 			}
-
+			
 			break;
 
 		case '10':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '10' AND Account_ID IS NOT NULL ";
+			$query = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '10' AND customerEmail IS NOT NULL ";
 			$result = $conn->query($query);
 			$row_cnt = $result->num_rows;
 
 			if ($row_cnt > 0) {
 		
-			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '10' AND Account_ID = ?";
+			    $query = "UPDATE accommodation SET customerEmail = NULL WHERE Accommodation_ID = '10' AND customerEmail = ?";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
@@ -1981,22 +1690,22 @@ if (isset($_GET['cancelres'])) {
 					window.location.replace(\"profile.php\");
 				    </script>";		
 			}
- 
+			
 			break;
 
 		case '11':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '11' AND Account_ID IS NOT NULL ";
+			$query = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '11' AND customerEmail IS NOT NULL ";
 			$result = $conn->query($query);
 			$row_cnt = $result->num_rows;
 
 			if ($row_cnt > 0) {
 		
-			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '11' AND Account_ID = ?";
+			    $query = "UPDATE accommodation SET customerEmail = NULL WHERE Accommodation_ID = '11' AND customerEmail = ?";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
@@ -2019,22 +1728,22 @@ if (isset($_GET['cancelres'])) {
 					window.location.replace(\"profile.php\");
 				    </script>";		
 			}
-
+			
 			break;
 
 		case '12':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '12' AND Account_ID IS NOT NULL ";
+			$query = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '12' AND customerEmail IS NOT NULL ";
 			$result = $conn->query($query);
 			$row_cnt = $result->num_rows;
 
 			if ($row_cnt > 0) {
 		
-			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '12' AND Account_ID = ?";
+			    $query = "UPDATE accommodation SET customerEmail = NULL WHERE Accommodation_ID = '12' AND customerEmail = ?";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
@@ -2057,22 +1766,22 @@ if (isset($_GET['cancelres'])) {
 					window.location.replace(\"profile.php\");
 				    </script>";		
 			}
-
+			
 			break;
 
 		case '13':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '13' AND Account_ID IS NOT NULL ";
+			$query = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '13' AND customerEmail IS NOT NULL ";
 			$result = $conn->query($query);
 			$row_cnt = $result->num_rows;
 
 			if ($row_cnt > 0) {
 		
-			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '13' AND Account_ID = ?";
+			    $query = "UPDATE accommodation SET customerEmail = NULL WHERE Accommodation_ID = '13' AND customerEmail = ?";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
@@ -2095,22 +1804,22 @@ if (isset($_GET['cancelres'])) {
 					window.location.replace(\"profile.php\");
 				    </script>";		
 			}
-
+			
 			break;
 			
 		case '14':
 
-			$id = $_SESSION['id'];
+			$email = $_SESSION['email'];
 			
-			$query = "SELECT Account_ID FROM accommodation WHERE Accommodation_ID = '14' AND Account_ID IS NOT NULL ";
+			$query = "SELECT customerEmail FROM accommodation WHERE Accommodation_ID = '14' AND customerEmail IS NOT NULL ";
 			$result = $conn->query($query);
 			$row_cnt = $result->num_rows;
 
 			if ($row_cnt > 0) {
 		
-			    $query = "UPDATE accommodation SET Account_ID = NULL WHERE Accommodation_ID = '14' AND Account_ID = ?";
+			    $query = "UPDATE accommodation SET customerEmail = NULL WHERE Accommodation_ID = '14' AND customerEmail = ?";
 				$stmt = $conn->prepare($query);
-				$stmt->bind_param('i', $id);
+				$stmt->bind_param('s', $email);
 
 				if ($stmt->execute()) {
 					unset($_SESSION['reservation']);
@@ -2133,7 +1842,7 @@ if (isset($_GET['cancelres'])) {
 					window.location.replace(\"profile.php\");
 				    </script>";		
 			}
-
+			
 			break;
 
 		default:

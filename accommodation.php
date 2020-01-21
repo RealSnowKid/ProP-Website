@@ -2,6 +2,11 @@
 <?php
 
 require_once 'formActions.php';
+if (!isset($_SESSION['id'])) {
+	header("Location: login.php");
+	exit();
+}
+
 $records = [];
 
 if (function_exists('fetchAccom')) {
@@ -33,7 +38,7 @@ if (function_exists('fetchAccom')) {
 		<table class="table table-striped">
 			<thead>
 				<tr>
-					<th>Room Nr</th>
+					<th>Accommodation Nr</th>
 					<th>Reserve</th>
 				</tr>
 			</thead>
@@ -52,6 +57,9 @@ if (function_exists('fetchAccom')) {
 				else: ?>
 					<tr>
 						<td colspan="2">No Free Rooms of This Type</td>
+					</tr>
+					<tr>
+						<td colspan="2"><a href="profile.php" class="btn">Go Back</a></td>
 					</tr>
 				<?php endif ?>
 			</tbody>

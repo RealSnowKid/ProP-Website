@@ -9,6 +9,7 @@ if (!isset($_SESSION['id'])) {
 }
 
 
+
 ?>
 <html>
 <head>
@@ -73,9 +74,11 @@ if (!isset($_SESSION['id'])) {
 		// echo $_SESSION['tickets'];
 		// echo "<br>";
 		// echo $_SESSION['reservation'];
+		// echo "<br>";
+		// echo $_SESSION['test'];
 	} ?>,</h1>
 	<h1>this is your profile page.</h1>
-<!-- 	<a href="profile.php?sendemail=1" class="btn btn-block3">Email</a>
+<!-- 	<a href="emailer.php" class="btn btn-block3">Email</a>
 	<br>
 	<br> -->
 	<a href="profile.php?logout=1" class="btn btn-block3">Log Out</a>
@@ -85,75 +88,125 @@ if (!isset($_SESSION['id'])) {
 	<br>
 
 	<?php
-		$sql = "SELECT ticketHex FROM tickets WHERE customerID=? LIMIT 1";
+		$sql = "SELECT ticketHex FROM customer WHERE email=? AND ticketHex IS NOT NULL LIMIT 5";
+
 		$stmt = $conn->prepare($sql);
-		$stmt->bind_param('i', $_SESSION['id']);
+		$stmt->bind_param('s', $_SESSION['email']);
 		$stmt->execute();
-		$result = $stmt->get_result();
-		$string = $result->fetch_assoc();
-		$ticketHex = $string['ticketHex'];
+		$stmt_result = $stmt->get_result();
 
-		switch (strlen ($ticketHex)) {
-			case '10':
-				$t1 = $ticketHex;
-				echo "<ul class=\"list-group\">
-					  <li class=\"list-group-item\">Ticket Code: " . $t1 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=1\">Cancel Ticket</a> </li>
-					  </ul>";
-				break;
 
-			case '20':
-				$t1 = substr($ticketHex, 0, 10);
-				$t2 = substr($ticketHex, 10, 10);
-				echo "<ul class=\"list-group\">
-					  <li class=\"list-group-item\">Ticket Code: " . $t1 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=1\">Cancel Ticket</a> </li>
-  					  <li class=\"list-group-item\">Ticket Code: " . $t2 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=2\">Cancel Ticket</a> </li>
-					  </ul>";
-				break;
+		switch ($stmt_result->num_rows) {
+			case '1':
+			echo "<ul class=\"list-group\">";
+			$i = 1;
+				while($row_data = $stmt_result->fetch_assoc()) {
 
-			case '30':
-				$t1 = substr($ticketHex, 0, 10);
-				$t2 = substr($ticketHex, 10, 10);
-				$t3 = substr($ticketHex, 20, 10);
-				echo "<ul class=\"list-group\">
-					  <li class=\"list-group-item\">Ticket Code: " . $t1 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=1\">Cancel Ticket</a> </li>
-  					  <li class=\"list-group-item\">Ticket Code: " . $t2 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=2\">Cancel Ticket</a> </li>
-					  <li class=\"list-group-item\">Ticket Code: " . $t3 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=3\">Cancel Ticket</a> </li>
-					  </ul>";
-				break;
+				    $ticketHex = $row_data['ticketHex'];
 
-			case '40':
-				$t1 = substr($ticketHex, 0, 10);
-				$t2 = substr($ticketHex, 10, 10);
-				$t3 = substr($ticketHex, 20, 10);
-				$t4 = substr($ticketHex, 30, 10);
-				echo "<ul class=\"list-group\">
-					  <li class=\"list-group-item\">Ticket Code: " . $t1 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=1\">Cancel Ticket</a> </li>
-  					  <li class=\"list-group-item\">Ticket Code: " . $t2 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=2\">Cancel Ticket</a> </li>
-					  <li class=\"list-group-item\">Ticket Code: " . $t3 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=3\">Cancel Ticket</a> </li>
-					  <li class=\"list-group-item\">Ticket Code: " . $t4 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=4\">Cancel Ticket</a> </li>
-					  </ul>";
-				break;
-
-			case '50':
-				$t1 = substr($ticketHex, 0, 10);
-				$t2 = substr($ticketHex, 10, 10);
-				$t3 = substr($ticketHex, 20, 10);
-				$t4 = substr($ticketHex, 30, 10);
-				$t5 = substr($ticketHex, 40, 10);
-				echo "<ul class=\"list-group\">
-					  <li class=\"list-group-item\">Ticket Code: " . $t1 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=1\">Cancel Ticket</a> </li>
-  					  <li class=\"list-group-item\">Ticket Code: " . $t2 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=2\">Cancel Ticket</a> </li>
-					  <li class=\"list-group-item\">Ticket Code: " . $t3 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=3\">Cancel Ticket</a> </li>
-					  <li class=\"list-group-item\">Ticket Code: " . $t4 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=4\">Cancel Ticket</a> </li>
-					  <li class=\"list-group-item\">Ticket Code: " . $t5 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=5\">Cancel Ticket</a> </li>
-					  </ul>";
+				    $t1 = substr($ticketHex, 0, 10);
+					echo "
+						  <li class=\"list-group-item\">Ticket Code: " . $t1 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=".$t1."\">Cancel Ticket</a> </li>
+						 ";
+					$i++;	  
+				}
+				echo "</ul>";
+				$stmt->close();
 				break;
 			
-			default:
-				$id = $_SESSION['id'];
+			case '2':
+			echo "<ul class=\"list-group\">";
+			$i = 1;
+				while($row_data = $stmt_result->fetch_assoc()) {
+
+				    $ticketHex = $row_data['ticketHex'];
+
+				    $t1 = substr($ticketHex, 0, 10);
+					echo "
+						  <li class=\"list-group-item\">Ticket Code: " . $t1 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=".$t1."\">Cancel Ticket</a> </li>
+						 ";
+					$i++;	  
+				}
+				echo "</ul>";
+				$stmt->close();
+				break;
+
+			case '3':
+			echo "<ul class=\"list-group\">";
+			$i = 1;
+				while($row_data = $stmt_result->fetch_assoc()) {
+
+				    $ticketHex = $row_data['ticketHex'];
+
+				    $t1 = substr($ticketHex, 0, 10);
+					echo "
+						  <li class=\"list-group-item\">Ticket Code: " . $t1 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=".$t1."\">Cancel Ticket</a> </li>
+						 ";
+					$i++;	  
+				}
+				echo "</ul>";
+				$stmt->close();
+				break;
+
+			case '4':
+			echo "<ul class=\"list-group\">";
+			$i = 1;
+				while($row_data = $stmt_result->fetch_assoc()) {
+
+				    $ticketHex = $row_data['ticketHex'];
+
+				    $t1 = substr($ticketHex, 0, 10);
+					echo "
+						  <li class=\"list-group-item\">Ticket Code: " . $t1 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=".$t1."\">Cancel Ticket</a> </li>
+						 ";
+					$i++;	  
+				}
+				echo "</ul>";
+				$stmt->close();
+				break;
+
+			case '5':
+			echo "<ul class=\"list-group\">";
+			$i = 1;
+				while($row_data = $stmt_result->fetch_assoc()) {
+
+				    $ticketHex = $row_data['ticketHex'];
+
+				    $t1 = substr($ticketHex, 0, 10);
+					echo "
+						  <li class=\"list-group-item\">Ticket Code: " . $t1 . " <a class=\"btn btn-ct\" href=\"profile.php?cancelticket=".$t1."\">Cancel Ticket</a> </li>
+						 ";
+					$i++;	  
+				}
+				echo "</ul>";
+				$stmt->close();
+				break;
+
+			case '0':
+				$email = $_SESSION['email'];
 				unset($_SESSION['tickets']);
 
-				$sql = "UPDATE accommodation SET Account_ID = NULL WHERE Account_ID = '".$id."'";
+				$sql = "UPDATE accommodation SET customerEmail = NULL WHERE customerEmail = '".$email."'";
+
+				if (!$conn->query($sql)) {
+					echo "<script type='text/javascript'> 
+				    window.alert('There is a big error. Please, contact someone!');
+					</script>";
+				}
+				else {
+					unset($_SESSION['reservation']);
+				}
+
+				echo "<h3>You have not yet purchased any tickets!</h3>";
+				echo "<br>";
+				echo "<a class=\"btn btn-block3\" href=\"index.php#schedule\">To Tickets</a>";
+				break;
+
+			default:
+				$email = $_SESSION['email'];
+				unset($_SESSION['tickets']);
+
+				$sql = "UPDATE accommodation SET customerEmail = NULL WHERE customerEmail = '".$email."'";
 
 				if (!$conn->query($sql)) {
 					echo "<script type='text/javascript'> 
@@ -169,6 +222,7 @@ if (!isset($_SESSION['id'])) {
 				echo "<a class=\"btn btn-block3\" href=\"index.php#schedule\">To Tickets</a>";
 				break;
 		}
+
 	?>
 
 	<hr>
@@ -176,7 +230,7 @@ if (!isset($_SESSION['id'])) {
 	<?php if (isset($_SESSION['tickets'])): ?>
 		<?php if(isset($_SESSION['reservation'])): ?>
 
-			<h1 style="color:black">You Have Reserved Room Number: <?php echo $_SESSION['reservation']; ?>.</h1>
+			<h1 style="color:black">You Have Reserved Accommodation Number: <?php echo $_SESSION['reservation']; ?>.</h1>
 			<a class="btn btn-block3" href="profile.php?cancelres=<?php echo $_SESSION['reservation'] ?>">Cancel Reservation</a>
 
 		<?php else: ?>

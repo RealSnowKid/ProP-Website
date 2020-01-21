@@ -6,37 +6,21 @@ namespace Composer\Autoload;
 
 class ComposerStaticInitfa0d87a0ac4f0e01c123f764f16d74b3
 {
-    public static $files = array (
-        '2c102faa651ef8ea5874edb585946bce' => __DIR__ . '/..' . '/swiftmailer/swiftmailer/lib/swift_required.php',
-    );
-
-    public static $prefixLengthsPsr4 = array (
-        'E' => 
-        array (
-            'Egulias\\EmailValidator\\' => 23,
-        ),
-        'D' => 
-        array (
-            'Doctrine\\Common\\Lexer\\' => 22,
-        ),
-    );
-
-    public static $prefixDirsPsr4 = array (
-        'Egulias\\EmailValidator\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/egulias/email-validator/EmailValidator',
-        ),
-        'Doctrine\\Common\\Lexer\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/doctrine/lexer/lib/Doctrine/Common/Lexer',
-        ),
+    public static $classMap = array (
+        'EasyPeasyICS' => __DIR__ . '/..' . '/phpmailer/phpmailer/extras/EasyPeasyICS.php',
+        'PHPMailer' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.phpmailer.php',
+        'PHPMailerOAuth' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.phpmaileroauth.php',
+        'PHPMailerOAuthGoogle' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.phpmaileroauthgoogle.php',
+        'POP3' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.pop3.php',
+        'SMTP' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.smtp.php',
+        'ntlm_sasl_client_class' => __DIR__ . '/..' . '/phpmailer/phpmailer/extras/ntlm_sasl_client.php',
+        'phpmailerException' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.phpmailer.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitfa0d87a0ac4f0e01c123f764f16d74b3::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitfa0d87a0ac4f0e01c123f764f16d74b3::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitfa0d87a0ac4f0e01c123f764f16d74b3::$classMap;
 
         }, null, ClassLoader::class);
     }
