@@ -2,7 +2,7 @@
 ###### *DEVELOPED BY __IVAN BANOV__*
 
 # WEBSITE PREVIEW
-##### Live website version available over at: http://i403318.hera.fhict.nl.
+##### Live website version available over at: http://i403318.hera.fhict.nl/musicfestival/index.php.
 ![Website Preview Jan 2020](https://git.fhict.nl/I403318/propwebsite/raw/master/Website_Pic.png "Website Peview")
 
 # TECHNOLOGIES
