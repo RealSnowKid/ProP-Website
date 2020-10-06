@@ -1,5 +1,5 @@
 # WEBSITE FOR PROP 2019/20 BY JIP
-###### *DEVELOPED BY __IVAN BANOV__*
+###### *DEVELOPED BY __IVAN  BANOV__*
 
 # WEBSITE PREVIEW
 ##### Live website version available over at: http://i403318.hera.fhict.nl/musicfestival/index.php.
